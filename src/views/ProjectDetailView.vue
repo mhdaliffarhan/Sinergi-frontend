@@ -97,6 +97,7 @@
               v-for="doc in project.dokumen" 
               :key="doc.id" 
               :dokumen="doc" 
+              :isAnggotaTim="isProjectLeader"
               @hapus="confirmDeleteDokumen"
               @preview="handlePreviewRequest" 
               class="p-3" />
@@ -270,6 +271,7 @@ const openLinkModal = () => { isLinkModalOpen.value = true; };
 const closeLinkModal = () => { isLinkModalOpen.value = false; };
 const handleLinkSubmit = async (formData) => {
   try {
+    console.log("Data Link : ", formData);
     await axios.post(`${baseURL}/api/projects/${projectId}/links`, formData);
     toast.success("Link berhasil ditambahkan.");
     closeLinkModal();
@@ -293,7 +295,7 @@ const handleFileUploadSubmit = async (formData) => {
   data.append('file', formData.file);
   data.append('keterangan', formData.keterangan);
   try {
-    console.log("Data : ", data);
+    console.log("Data : ", formData);
     await axios.post(`${baseURL}/api/projects/${projectId}/dokumen`, data);
     toast.success("File berhasil diunggah.");
     closeFileModal();

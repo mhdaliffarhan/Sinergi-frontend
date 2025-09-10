@@ -85,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import axios from "axios";
 import ProfilePicture from "@/components/profile/ProfilePicture.vue";
 import { useAuthStore } from '@/stores/auth';
@@ -109,9 +109,7 @@ const form = ref({
   confirmPassword: ""
 });
 
-onMounted ( ()=> {
-  console.log("testing : ",authStore.user.id);
-})
+
 const updatePassword = async () => {
   if (form.value.newPassword !== form.value.confirmPassword) {
     toast.error("Password baru dan konfirmasi tidak cocok.");

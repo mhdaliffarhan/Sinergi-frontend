@@ -91,7 +91,7 @@ const fetchProjects = async (query = '') => {
   isLoading.value = true;
   try {
     const response = await axios.get(`${baseURL}/api/projects`, {
-      params: { q: query }
+      params: { q: query, limit : 1000 }
     });
     projects.value = response.data.items;
   } catch (error) {

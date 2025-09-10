@@ -2,14 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from 'vue-toastification'
 
-import LandingView from '@/views/LandingView.vue'
 import LoginView from '../views/LoginView.vue'
 import TeamView from '@/views/TeamView.vue'
 import AktivitasDashboardView from '../views/AktivitasDashboardView.vue'
 import AktivitasDaftarView from '../views/AktivitasDaftarView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import ProjectView from '@/views/ProjectView.vue'
-import DashboardView from '../views/DashboardView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

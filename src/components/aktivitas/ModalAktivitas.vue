@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue';
+import { computed } from 'vue';
 import { format, isSameDay } from 'date-fns';
 import { id } from 'date-fns/locale';
 import ModalWrapper from '@/components/ModalWrapper.vue';

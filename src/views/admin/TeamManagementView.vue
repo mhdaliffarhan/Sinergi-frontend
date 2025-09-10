@@ -183,8 +183,10 @@ const closeModal = () => {
 
 const handleTeamCreate = async (formData) => {
   try {
+    console.log("form team : ", formData);
     await axios.post(`${baseURL}/api/teams`, formData);
     toast.success(`Tim "${formData.namaTim}" berhasil dibuat.`);
+    
     closeModal();
     await fetchData();
   } catch (error) {
@@ -196,7 +198,7 @@ const handleTeamCreate = async (formData) => {
 const handleTeamUpdate = async (formData) => {
     try {
       console.log('Data : ', formData);
-        await axios.put(`http://127.0.0.1:8000/api/teams/${formData.id}`, formData);
+        await axios.put(`${baseURL}/api/teams/${formData.id}`, formData);
         toast.success(`Tim "${formData.namaTim}" berhasil diperbarui.`);
         closeModal();
         await fetchData();
@@ -213,7 +215,7 @@ const confirmDeleteTeam = (team) => {
 
 const deleteTeam = async (teamId) => {
   try {
-    await axios.delete(`http://127.0.0.1:8000/api/teams/${teamId}`);
+    await axios.delete(`${baseURL}/api/teams/${teamId}`);
     toast.success("Tim berhasil dihapus.");
     await fetchData();
   } catch (error) {

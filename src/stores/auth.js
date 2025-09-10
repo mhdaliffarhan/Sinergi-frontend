@@ -27,7 +27,6 @@ export const useAuthStore = defineStore('auth', () => {
   function setToken(newToken) {
     localStorage.setItem('token', newToken);
     token.value = newToken;
-    // SECARA OTOMATIS TAMBAHKAN TOKEN KE SEMUA REQUEST AXIOS
     axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
   }
 

@@ -131,7 +131,9 @@ const fetchTeams = async () => {
 
 const fetchProjects = async () => {
   try {
-    const response = await axios.get(`${baseURL}/api/projects`);
+    const response = await axios.get(`${baseURL}/api/projects`, {
+      params: {limit : 1000}
+    });
     projectList.value = response.data.items.map(project => ({
       id: project.id,
       namaProject: project.namaProject,

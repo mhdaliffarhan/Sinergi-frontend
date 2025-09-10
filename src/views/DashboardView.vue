@@ -72,16 +72,16 @@
           <DashboardCard icon="✅" title="Aktivitas Tim" :value="teamAktivitas?.length ?? 0" color="text-orange-500" />
         </div>
 
-        <section class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mt-8">
+        <!-- <section class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mt-8">
           <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Progress Dokumen Tim</h2>
           <DokumenProgressSection v-if="dokumenWajibTeam.length > 0" :dokumen-wajib="dokumenWajibTeam" @go-to-aktivitas="goToAktivitas" />
           <div v-else class="text-center text-gray-500 dark:text-gray-400 p-6">
             Tim ini tidak memiliki dokumen wajib yang harus diselesaikan.
           </div>
-        </section>
+        </section> -->
 
         <section class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mt-8">
-          <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Jadwal Anggota Tim Saya</h2>
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Jadwal Tim</h2>
           <div ref="calendar" class="w-full"></div>
         </section>
       </div>
@@ -258,10 +258,10 @@ const fetchDashboardData = async () => {
         } else if (isKetuaTim.value) {
             const teamId = selectedTeamId.value;
             if (teamId) {
-                const [aktivitasRes, teamDetailsRes, dokumenRes] = await Promise.all([
-                    axios.get(`${baseURL}/api/kalender/events?team_ids=${teamId}`),
+                const [aktivitasRes, teamDetailsRes, dokumenRes, aktivitas] = await Promise.all([
+                    axios.get(`${baseURL}/api/teams/${teamId}/aktivitas`),
                     axios.get(`${baseURL}/api/teams/${teamId}/details`),
-                    axios.get(`${baseURL}/api/teams/${teamId}/dokumen-wajib-team`)
+                    axios.get(`${baseURL}/api/teams/${teamId}/dokumen-wajib-team`),
                 ]);
                 allAktivitas.value = aktivitasRes.data;
                 team.value = teamDetailsRes.data;

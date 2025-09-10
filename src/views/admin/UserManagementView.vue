@@ -125,11 +125,11 @@ const fetchData = async () => {
 
     // Ambil data peran dan jabatan (hanya jika belum ada)
     if (sistemRoles.value.length === 0) {
-      const rolesResponse = await axios.get('`${baseURL}/api/sistem-roles');
+      const rolesResponse = await axios.get(`${baseURL}/api/sistem-roles`);
       sistemRoles.value = rolesResponse.data;
     }
     if (jabatanList.value.length === 0) {
-      const jabatanResponse = await axios.get('`${baseURL}/api/jabatan');
+      const jabatanResponse = await axios.get(`${baseURL}/api/jabatan`);
       jabatanList.value = jabatanResponse.data;
     }
   } catch (error) {

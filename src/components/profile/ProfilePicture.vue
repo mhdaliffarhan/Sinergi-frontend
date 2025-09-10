@@ -46,6 +46,7 @@ import { ref } from "vue";
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 import { useToast } from "vue-toastification";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const authStore = useAuthStore();
 const toast = useToast();
@@ -56,7 +57,7 @@ const previewUrl = ref(null);
 const getProfileUrl = (path) => {
   if (!path) return null;
   if (path.startsWith("./")) {
-    return `http://127.0.0.1:8000/${path.replace("./", "")}`;
+    return `${baseURL}/${path.replace("./", "")}`;
   }
   return path;
 };
@@ -71,7 +72,7 @@ const handleFileChange = async (e) => {
     formData.append("file", file);
 
     await axios.post(
-      `http://127.0.0.1:8000/api/${authStore.user.id}/upload-photo`,
+      `${baseURL}/api/${authStore.user.id}/upload-photo`,
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );
@@ -89,7 +90,7 @@ const handleFileChange = async (e) => {
 const deletePhoto = async () => {
   try {
     await axios.delete(
-      `http://127.0.0.1:8000/api/${authStore.user.id}/delete-photo`
+      `${baseURL}/api/${authStore.user.id}/delete-photo`
     );
     toast.success("Foto profil berhasil dihapus");
     previewUrl.value = null;

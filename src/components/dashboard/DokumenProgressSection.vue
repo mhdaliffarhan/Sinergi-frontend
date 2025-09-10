@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, defineProps, defineEmits } from 'vue';
+import { ref, computed, watch} from 'vue';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
