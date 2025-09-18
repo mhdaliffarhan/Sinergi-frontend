@@ -10,7 +10,7 @@
           v-model="form.namaProject"
           :class="{ 'border-red-500': errors.namaProject }"
           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-          placeholder="Contoh: Aplikasi Manajemen Mitra"
+          placeholder="Contoh: Publikasi Daerah Dalam Angka"
         />
         <p v-if="errors.namaProject" class="mt-1 text-xs text-red-500">{{ errors.namaProject }}</p>
       </div>
@@ -34,7 +34,7 @@
         </select>
         <p v-if="errors.teamId" class="mt-1 text-xs text-red-500">{{ errors.teamId }}</p>
       </div>
-
+      
       <div>
         <label for="project-leader" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Leader</label>
         <select 
@@ -74,7 +74,7 @@ import { reactive, ref, computed, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
-
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
 const toast = useToast();
 
@@ -119,7 +119,7 @@ watch(() => form.teamId, async (newTeamId) => {
 
   if (newTeamId) {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/teams/${newTeamId}`);
+      const response = await axios.get(`${baseURL}/api/teams/${newTeamId}`);
       teamMembers.value = response.data.users;
     } catch (error) {
       toast.error("Gagal memuat anggota tim.");
@@ -144,7 +144,7 @@ watch(() => props.initialData, (newData) => {
         // Ini memastikan opsi projectLeaderId sudah tersedia di dropdown saat diisi
         // Ini akan memicu watcher form.teamId di atas
         if (newData.teamId) {
-            axios.get(`http://127.0.0.1:8000/api/teams/${newData.teamId}`).then(response => {
+            axios.get(`${baseURL}/api/teams/${newData.teamId}`).then(response => {
                 teamMembers.value = response.data.users;
                 form.projectLeaderId = newData.projectLeaderId || null;
             });
