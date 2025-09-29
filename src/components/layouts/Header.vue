@@ -13,6 +13,15 @@
       </div>
       <div class="flex items-center gap-2 sm:gap-4">
 
+        <button 
+          @click="openGuideBookModal" 
+          class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-xl" 
+          title="Buku Panduan Penggunaan"
+        >
+          📖
+        </button>
+
+        
         <button @click="toggleTheme" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
           <svg v-if="theme === 'light'" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
           <svg v-else class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -63,17 +72,36 @@
       </div>
     </div>
   </header>
+  <FilePreviewModal
+    :show="showGuideBookModal"
+    :file-url="guideBookData.url"
+    :file-name="guideBookData.name"
+    :file-type="guideBookData.type"
+    @close="showGuideBookModal = false"
+  />
 </template>
 
 <script setup>
 import { useUIStore } from '@/stores/ui';
 import { useAuthStore } from '@/stores/auth';
 import { ref, onMounted } from 'vue';
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
+import FilePreviewModal from '@/components/FilePreviewModal.vue';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const uiStore = useUIStore();
 const authStore = useAuthStore();
+
+const showGuideBookModal = ref(false);
+const guideBookData = {
+    url: '/BukuPedoman.pdf',
+    name: 'Buku Pedoman Penggunaan Aplikasi',
+    type: 'application/pdf'
+};
+
+const openGuideBookModal = () => {
+    showGuideBookModal.value = true;
+};
 
 const theme = ref('light'); 
 

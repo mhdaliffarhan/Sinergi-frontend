@@ -65,14 +65,14 @@
         </select>
         <p v-if="errors.projectId" class="mt-1 text-xs text-red-500">{{ errors.projectId }}</p>
       </div>
-      
-      <div v-if="form.teamId">
+
+      <div>
         <label for="anggota" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Anggota yang Terlibat
+          Pegawai yang Terlibat
         </label>
         <div class="relative mt-1">
           <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="toggleDropdown">
-            <div v-if="selectedMembers.length === 0" class="text-gray-400">Pilih anggota tim...</div>
+            <div v-if="selectedMembers.length === 0" class="text-gray-400">Pilih pegawai yang terlibat...</div>
             <div v-else class="flex flex-wrap gap-2">
               <span v-for="member in selectedMembers" :key="member.id" class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-800 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
                 {{ member.namaLengkap }}
@@ -95,7 +95,40 @@
         </div>
       </div>
 
+
+      <!-- Daftar pegawai yang muncul hanya dari tim yang dipilih -->
+      <!-- <div v-if="form.teamId">
+        <label for="anggota" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Pegawai yang Terlibat
+        </label>
+        <div class="relative mt-1">
+          <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="toggleDropdown">
+            <div v-if="selectedMembers.length === 0" class="text-gray-400">Pilih pegawai yang terlibat...</div>
+            <div v-else class="flex flex-wrap gap-2">
+              <span v-for="member in selectedMembers" :key="member.id" class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-800 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
+                {{ member.namaLengkap }}
+                <button type="button" @click.stop="removeMember(member.id)" class="ml-1 -mr-0.5 h-4 w-4 text-blue-500 hover:text-blue-700">
+                  <svg class="h-full w-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </span>
+            </div>
+          </div>
+          
+          <div v-if="isDropdownOpen" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
+            <input type="text" v-model="searchQuery" placeholder="Cari anggota..." class="sticky top-0 w-full px-4 py-2 bg-gray-50 border-b border-gray-300 dark:border-gray-600 focus:outline-none text-sm  sm:text-sm dark:bg-gray-700 dark:text-white" @click.stop/>
+            <ul class="py-1">
+              <li v-for="user in filteredMembers" :key="user.id" @click="selectMember(user)" class="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700  sm:text-sm dark:bg-gray-700 dark:text-white">
+                <span :class="{'font-bold': isSelected(user.id)}">{{ user.namaLengkap }}</span>
+              </li>
+            </ul>
+            <p v-if="filteredMembers.length === 0" class="text-center text-gray-400 py-4 text-sm">Tidak ada anggota ditemukan.</p>
+          </div>
+        </div>
+      </div> -->
+      <!-- End of Daftar pegawai yang muncul hanya dari tim yang dipilih -->
+
       <hr class="border-gray-200 dark:border-gray-700">
+
       <div>
         <label for="melibatkanKepala" class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
           <input type="checkbox" id="melibatkanKepala" v-model="form.melibatkanKepala" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
@@ -206,6 +239,7 @@ const props = defineProps({
   },
   teamList: { type: Array, required: true },
   projectList: { type: Array, required: true },
+  pegawaiList: {type: Array, required: true},
   teamMembers: { type: Object, required: true },
   tipe: { type: String, required: true } 
 });
@@ -240,7 +274,7 @@ const selectedMembers = ref([]);
 
 // Komputerisasi untuk anggota tim yang difilter
 const filteredMembers = computed(() => {
-  const members = props.teamMembers[form.teamId] || [];
+  const members = props.pegawaiList || [];
   const query = searchQuery.value.toLowerCase();
   return members.filter(user =>
     user.namaLengkap.toLowerCase().includes(query) || user.username.toLowerCase().includes(query)

@@ -52,7 +52,7 @@
     </div>
 
     <ModalWrapper :show="isModalOpen" @close="closeModal" title="Buat Aktivitas Baru">
-      <FormAktivitas @close="closeModal" @submit="handleActivitySubmit" tipe="Buat" :team-list="teamList" :project-list="projectList" :team-members="teamMembers"/>
+      <FormAktivitas @close="closeModal" @submit="handleActivitySubmit" tipe="Buat" :team-list="teamList" :project-list="projectList" :team-members="teamMembers" :pegawai-list="pegawaiList" />
     </ModalWrapper>
   </div>
 </template>
@@ -75,6 +75,7 @@ const aktivitas = ref([]);
 const teamList = ref([]);
 const teamMembers = ref([]);
 const projectList = ref([]);
+const pegawaiList = ref([]);
 const isModalOpen = ref(false);
 const viewMode = ref('table');
 const isLoading = ref(false);
@@ -122,18 +123,38 @@ const fetchTeams = async () => {
         }));
       }
     }
-    console.log("Team list :", authStore.user);
+    console.log("Team list :", teamMembers.value);
   } catch (error) {
     toast.error("Gagal memuat daftar tim.");
     console.error("Gagal mengambil data tim:", error);
   }
 };
 
+const fetchPegawai = async () => {
+  try {
+    const response = await axios.get(`${baseURL}/api/users`, {
+      params : {
+        limit : 10000
+      }
+    });
+    const sortedPegawai = response.data.items.sort((a,b) =>{
+      return a.namaLengkap.localeCompare(b.namaLengkap, 'id', { sensitivity: 'base' });
+    });
+
+    pegawaiList.value = sortedPegawai;
+    console.log('Pegawai List : ', pegawaiList.value);
+  } catch (error) {
+    toast.error("Gagal memuat data pegawai.");
+    console.error("Gagal mengambil data pegawai", error);
+  }
+}
+
 const fetchProjects = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/projects`, {
       params: {limit : 1000}
     });
+    console.log(response.data.items);
     projectList.value = response.data.items.map(project => ({
       id: project.id,
       namaProject: project.namaProject,
@@ -160,6 +181,7 @@ onMounted(() => {
   fetchAktivitas();
   fetchTeams();
   fetchProjects();
+  fetchPegawai();
 });
 
 // --- FUNGSI SUBMIT YANG MENGGABUNGKAN SEMUANYA ---

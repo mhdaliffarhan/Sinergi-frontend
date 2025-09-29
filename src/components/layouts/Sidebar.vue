@@ -10,13 +10,35 @@
     <div class="p-4">
       <nav class="flex flex-col gap-1">
         <div v-for="item in menuItems" :key="item.label">
-          <router-link v-if="!item.children" :to="item.to" class="flex items-center gap-3 px-4 py-2.5 rounded-md text-gray-600 dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" :class="{ 'justify-center': !uiStore.isSidebarOpen }">
+
+          <a 
+            v-if="item.external" 
+            :href="item.href" 
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-3 px-4 py-2.5 rounded-md text-gray-600 dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" 
+            :class="{ 'justify-center': !uiStore.isSidebarOpen }"
+          >
+            <span v-html="item.icon" class="text-xl"></span>
+            <span v-if="uiStore.isSidebarOpen">{{ item.label }}</span>
+          </a>
+          
+          <router-link 
+            v-else-if="!item.children" 
+            :to="item.to" 
+            class="flex items-center gap-3 px-4 py-2.5 rounded-md text-gray-600 dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" 
+            :class="{ 'justify-center': !uiStore.isSidebarOpen }"
+          >
             <span v-html="item.icon" class="text-xl"></span>
             <span v-if="uiStore.isSidebarOpen">{{ item.label }}</span>
           </router-link>
           
           <div v-else>
-            <button @click="toggleDropdown(item.label)" class="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-md text-gray-600 dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" :class="{ 'justify-center': !uiStore.isSidebarOpen }">
+            <button 
+              @click="toggleDropdown(item.label)" 
+              class="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-md text-gray-600 dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" 
+              :class="{ 'justify-center': !uiStore.isSidebarOpen }"
+            >
               <div class="flex items-center gap-3">
                 <span v-html="item.icon" class="text-xl"></span>
                 <span v-if="uiStore.isSidebarOpen">{{ item.label }}</span>
@@ -26,7 +48,12 @@
             
             <transition name="expand">
               <div v-if="openDropdowns[item.label] && uiStore.isSidebarOpen" class="mt-1 ml-7 pl-3 border-l border-gray-200 dark:border-gray-600 overflow-hidden">
-                <router-link v-for="child in item.children" :key="child.label" :to="child.to" class="flex items-center gap-3 px-4 py-2 rounded-md text-sm text-gray-500 dark:text-gray-400 font-medium hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                <router-link 
+                  v-for="child in item.children" 
+                  :key="child.label" 
+                  :to="child.to" 
+                  class="flex items-center gap-3 px-4 py-2 rounded-md text-sm text-gray-500 dark:text-gray-400 font-medium hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
                   {{ child.label }}
                 </router-link>
               </div>
@@ -62,6 +89,7 @@ const menuItems = computed(() => {
     { 
       label: 'Aktivitas', to: '/aktivitas/daftar', icon: '✅'
     },
+    { label: 'Feedback', external:true, href: "https://docs.google.com/forms/d/e/1FAIpQLSd__LfvPoMKVeGiaFS_SMhYFr5DF_g-gaI7fvJGCgzdyj8svQ/viewform?usp=header", icon: '⭐'}
   ];
   if (authStore.isAdmin) {
     baseMenu.push({

@@ -258,7 +258,7 @@ const fetchDashboardData = async () => {
         } else if (isKetuaTim.value) {
             const teamId = selectedTeamId.value;
             if (teamId) {
-                const [aktivitasRes, teamDetailsRes, dokumenRes, aktivitas] = await Promise.all([
+                const [aktivitasRes, teamDetailsRes, dokumenRes] = await Promise.all([
                     axios.get(`${baseURL}/api/teams/${teamId}/aktivitas`),
                     axios.get(`${baseURL}/api/teams/${teamId}/details`),
                     axios.get(`${baseURL}/api/teams/${teamId}/dokumen-wajib-team`),

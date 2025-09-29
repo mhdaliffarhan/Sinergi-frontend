@@ -322,9 +322,18 @@ const formattedWaktuPelaksanaan = computed(() => {
     tanggalTampil = tglMulai.toLocaleDateString('id-ID', options);
   }
 
-  if (aktivitas.value.jamMulai) {
-    waktuTampil = `${aktivitas.value.jamMulai} - ${aktivitas.value.jamSelesai} WITA`;
+   if (aktivitas.value.jamMulai) {
+    const formatJam = (jam) => {
+      const jamTanpaDetik = jam.substring(0, 5);
+      return jamTanpaDetik.replace(':', '.');
+    };
+
+    const jamMulaiFormatted = formatJam(aktivitas.value.jamMulai);
+    const jamSelesaiFormatted = formatJam(aktivitas.value.jamSelesai);
+
+    waktuTampil = `${jamMulaiFormatted} - ${jamSelesaiFormatted} WITA`;
   }
+
   return { tanggal: tanggalTampil, waktu: waktuTampil };
 });
 
