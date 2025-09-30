@@ -245,10 +245,10 @@ const fetchDashboardData = async () => {
         }
         
         const [teamsRes, usersRes] = await Promise.all([
-            axios.get(`${baseURL}/api/teams/active`),
+            axios.get(`${baseURL}/api/teams/active`, { params: { limit: 10000}}),
             axios.get(`${baseURL}/api/users`, { params: { limit: 10000 } })
         ]);
-        allTeams.value = teamsRes.data;
+        allTeams.value = teamsRes.data.items;
         allUsers.value = usersRes.data.items;
 
         if (isKepalaKantor.value) {

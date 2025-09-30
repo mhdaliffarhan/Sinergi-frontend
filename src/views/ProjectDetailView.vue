@@ -97,7 +97,7 @@
               v-for="doc in project.dokumen" 
               :key="doc.id" 
               :dokumen="doc" 
-              :isAnggotaTim="isProjectLeader"
+              :isAnggotaTim="isProjectLeader()"
               @hapus="confirmDeleteDokumen"
               @preview="handlePreviewRequest" 
               class="p-3" />
@@ -195,7 +195,7 @@ const fetchDetailProject = async () => {
     const response = await axios.get(`${baseURL}/api/projects/${projectId}`);
     project.value = response.data;
     breadcrumbItems.value[2].text = project.value?.namaProject ?? 'Detail Project';
-    console.log("Detail Project : ", response.data);
+    // console.log("Detail Project : ", response.data);
   } catch (error) {
     const message = error.response?.data?.message || "Gagal memuat detail Project.";
     toast.error(message);
@@ -208,7 +208,8 @@ const fetchDetailProject = async () => {
 const fetchTeams = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/teams/active`);
-    teamList.value = response.data.map(team => ({
+    const fetchedTeams = response.data.items || []; 
+    teamList.value = fetchedTeams.map(team => ({
       id: team.id,
       namaTim: team.namaTim 
     }));
@@ -271,7 +272,7 @@ const openLinkModal = () => { isLinkModalOpen.value = true; };
 const closeLinkModal = () => { isLinkModalOpen.value = false; };
 const handleLinkSubmit = async (formData) => {
   try {
-    console.log("Data Link : ", formData);
+    // console.log("Data Link : ", formData);
     await axios.post(`${baseURL}/api/projects/${projectId}/links`, formData);
     toast.success("Link berhasil ditambahkan.");
     closeLinkModal();
@@ -295,7 +296,7 @@ const handleFileUploadSubmit = async (formData) => {
   data.append('file', formData.file);
   data.append('keterangan', formData.keterangan);
   try {
-    console.log("Data : ", formData);
+    // console.log("Data : ", formData);
     await axios.post(`${baseURL}/api/projects/${projectId}/dokumen`, data);
     toast.success("File berhasil diunggah.");
     closeFileModal();

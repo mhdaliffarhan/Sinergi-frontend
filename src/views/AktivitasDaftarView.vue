@@ -51,6 +51,14 @@
       <TabelAktivitas v-if="viewMode === 'table'" :aktivitas="aktivitas" />
     </div>
 
+    <Pagination
+      v-if="totalAktivitas > 0"
+      :current-page="currentPage"
+      :total-items="totalAktivitas"
+      :items-per-page="itemsPerPage"
+      @page-changed="handlePageChange"
+    />
+
     <ModalWrapper :show="isModalOpen" @close="closeModal" title="Buat Aktivitas Baru">
       <FormAktivitas @close="closeModal" @submit="handleActivitySubmit" tipe="Buat" :team-list="teamList" :project-list="projectList" :team-members="teamMembers" :pegawai-list="pegawaiList" />
     </ModalWrapper>
@@ -67,6 +75,7 @@ import DaftarAktivitas from '@/components/aktivitas/DaftarAktivitas.vue';
 import ModalWrapper from '@/components/ModalWrapper.vue';
 import FormAktivitas from '@/components/aktivitas/FormAktivitas.vue';
 import TabelAktivitas from '@/components/aktivitas/TabelAktivitas.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
@@ -82,6 +91,11 @@ const isLoading = ref(false);
 const searchQuery = ref('');
 let debounceTimer = null;
 
+// PAGINATION
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const totalAktivitas = ref(0);
+
 const updateViewMode = () => {
   if (window.innerWidth < 768) {
     viewMode.value = 'card';
@@ -90,14 +104,19 @@ const updateViewMode = () => {
   }
 };
 
-const fetchAktivitas = async (query = '') => {
+const fetchAktivitas = async (query = searchQuery.value) => {
    isLoading.value = true;
+   const skip = (currentPage.value - 1) * itemsPerPage.value;
   try {
     const response = await axios.get(`${baseURL}/api/aktivitas`, {
-      params: { q: query }
+      params: { 
+        q: query,
+        skip: skip,
+        limit: itemsPerPage.value
+      }
     });
-    aktivitas.value = response.data;
-    console.log("data aktivitas: ", response.data);
+    aktivitas.value = response.data.items || [];
+    totalAktivitas.value = response.data.total || 0;
   } catch (error) {
     toast.error("Gagal memuat data aktivitas.");
     console.error("Gagal mengambil data aktivitas:", error);
@@ -106,24 +125,31 @@ const fetchAktivitas = async (query = '') => {
   }
 };
 
+const handlePageChange = (newPage) => {
+  currentPage.value = newPage;
+  fetchAktivitas();
+};
+
+
 const fetchTeams = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/teams/active`);
-    teamList.value = response.data.map(team => ({
-      id: team.id,
-      namaTim: team.namaTim 
+    const fetchedTeams = response.data.items || []; 
+    teamList.value = fetchedTeams.map(team => ({
+        id: team.id,
+        namaTim: team.namaTim 
     }));
-     // Perulangan untuk mengambil data user di setiap tim
-    for (const team of response.data) {
-      if (team.users && team.users.length > 0) {
-        teamMembers.value[team.id] = team.users.map(user => ({
-          id: user.id,
-          namaLengkap: user.namaLengkap,
-          username: user.username
-        }));
-      }
-    }
-    console.log("Team list :", teamMembers.value);
+    // Perulangan untuk mengambil data user di setiap tim
+    // for (const team of response.data) {
+    //   if (team.users && team.users.length > 0) {
+    //     teamMembers.value[team.id] = team.users.map(user => ({
+    //       id: user.id,
+    //       namaLengkap: user.namaLengkap,
+    //       username: user.username
+    //     }));
+    //   }
+    // }
+    // console.log("Team list :", teamMembers.value);
   } catch (error) {
     toast.error("Gagal memuat daftar tim.");
     console.error("Gagal mengambil data tim:", error);
@@ -142,7 +168,6 @@ const fetchPegawai = async () => {
     });
 
     pegawaiList.value = sortedPegawai;
-    console.log('Pegawai List : ', pegawaiList.value);
   } catch (error) {
     toast.error("Gagal memuat data pegawai.");
     console.error("Gagal mengambil data pegawai", error);
@@ -154,14 +179,12 @@ const fetchProjects = async () => {
     const response = await axios.get(`${baseURL}/api/projects`, {
       params: {limit : 1000}
     });
-    console.log(response.data.items);
     projectList.value = response.data.items.map(project => ({
       id: project.id,
       namaProject: project.namaProject,
       teamId: project.teamId,
       projectLeaderId: project.projectLeaderId
     }));
-    console.log("Project : ", projectList.value);
   } catch (error) {
     toast.error("Gagal memuat data project");
     console.error("Gagal memuat data project: ", error);
@@ -169,9 +192,10 @@ const fetchProjects = async () => {
 }
 
 watch(searchQuery, (newQuery) => {
+  currentPage.value = 1;
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    fetchAktivitas(newQuery);
+    fetchAktivitas();
   }, 300);
 });
 
@@ -197,7 +221,6 @@ const handleActivitySubmit = async (formData) => {
   });
   
   try {
-    console.log("Form buat aktivitas : ", payload);
     await axios.post(`${baseURL}/api/aktivitas`, payload);
     toast.success("Aktivitas berhasil dibuat!");
     closeModal();

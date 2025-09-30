@@ -109,10 +109,8 @@ const modalTitle = computed(() => isEditMode.value ? 'Edit Pengguna' : 'Tambah P
 
 const fetchData = async () => {
   try {
-    // Hitung 'skip' berdasarkan halaman saat ini
     const skip = (currentPage.value - 1) * itemsPerPage.value;
 
-    // Ambil data pengguna dengan parameter skip & limit
     const usersResponse = await axios.get(`${baseURL}/api/users`, {
       params: {
         skip: skip,

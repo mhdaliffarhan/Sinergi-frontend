@@ -108,7 +108,6 @@
           Tidak ada anggota yang terdaftar dalam tim ini.
         </div>
       </section>
-
       <section class="mt-8">
         <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Proyek dan Aktivitas</h2>
         <div v-if="team.projects?.length > 0" class="space-y-6">
@@ -264,7 +263,7 @@ const fetchTeamDetails = async () => {
     ]);
     team.value = teamRes.data;
     allUsers.value = usersRes.data.items;
-    console.log("Data tim : ", team.value);
+    // console.log("Data tim : ", team.value);
   } catch (error) {
     toast.error("Gagal memuat detail tim.");
     console.error("Error fetching team details:", error);

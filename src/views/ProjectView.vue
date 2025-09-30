@@ -49,6 +49,13 @@
     <div class="mt-6">
       <DaftarProject v-if="viewMode === 'card'" :projects="projects" />
       <TabelProject v-if="viewMode === 'table'" :projects="projects" />
+      <Pagination
+        v-if="totalProjects > 0"
+        :current-page="currentPage"
+        :total-items="totalProjects"
+        :items-per-page="itemsPerPage"
+        @page-changed="handlePageChange"
+      />
     </div>
 
     <ModalWrapper :show="isModalOpen" @close="closeModal" title="Buat Project Baru">
@@ -67,6 +74,7 @@ import DaftarProject from '@/components/project/DaftarProject.vue';
 import ModalWrapper from '@/components/ModalWrapper.vue';
 import FormProject from '@/components/project/FormProject.vue';
 import TabelProject from '@/components/project/TabelProject.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
@@ -79,6 +87,11 @@ const isLoading = ref(false);
 const searchQuery = ref('');
 let debounceTimer = null;
 
+// PAGINATION
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const totalProjects = ref(0);
+
 const updateViewMode = () => {
   if (window.innerWidth < 768) {
     viewMode.value = 'card';
@@ -87,13 +100,21 @@ const updateViewMode = () => {
   }
 };
 
-const fetchProjects = async (query = '') => {
+const fetchProjects = async () => {
   isLoading.value = true;
+  const skip = (currentPage.value - 1) * itemsPerPage.value;
   try {
     const response = await axios.get(`${baseURL}/api/projects`, {
-      params: { q: query, limit : 1000 }
+      params: { 
+        q: searchQuery.value,
+        skip: skip,
+        limit : itemsPerPage.value ,
+       }
     });
+    // console.log(response.data);
     projects.value = response.data.items;
+    totalProjects.value = response.data.total;
+
   } catch (error) {
     toast.error("Gagal memuat data Project.");
     console.error("Gagal mengambil data Project:", error);
@@ -105,17 +126,23 @@ const fetchProjects = async (query = '') => {
 const fetchTeams = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/teams/active`);
-    teamList.value = response.data.map(team => ({
+    const fetchedTeams = response.data.items || []; 
+    
+    teamList.value = fetchedTeams.map(team => ({
       id: team.id,
       namaTim: team.namaTim 
     }));
-    console.log(authStore.user);
+
   } catch (error) {
     toast.error("Gagal memuat daftar tim.");
     console.error("Gagal mengambil data tim:", error);
   }
 };
 
+const handlePageChange = (newPage) => {
+  currentPage.value = newPage;
+  fetchProjects(searchQuery.value);
+}
 
 watch(searchQuery, (newQuery) => {
   clearTimeout(debounceTimer);

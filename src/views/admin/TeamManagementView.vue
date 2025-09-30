@@ -124,7 +124,7 @@ const fetchData = async () => {
         params: { 
           skip: skip, 
           limit: itemsPerPage.value, 
-          search: searchQuery.value }
+          q: searchQuery.value }
       }),
       axios.get(`${baseURL}/api/users`, { params: { limit: 10000 } }) 
     ]);

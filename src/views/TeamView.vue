@@ -56,6 +56,13 @@
         Tidak ada tim aktif yang ditemukan.
       </div>
     </div>
+     <Pagination
+      v-if="totalTeams > 0"
+      :current-page="currentPage"
+      :total-items="totalTeams"
+      :items-per-page="itemsPerPage"
+      @page-changed="handlePageChange"
+    />
   </div>
 </template>
 
@@ -69,6 +76,7 @@ import DaftarTeam from '@/components/team/DaftarTeam.vue';
 import TabelTeam from '@/components/team/TabelTeam.vue';
 import ModalWrapper from '@/components/ModalWrapper.vue';
 import FormTim from '@/components/admin/FormTim.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
@@ -80,22 +88,33 @@ const isLoading = ref(false);
 const searchQuery = ref('');
 let debounceTimer = null;
 
+// PAGINATION
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const totalTeams = ref(0);
+
 const updateViewMode = () => {
   if (window.innerWidth < 768) {
     viewMode.value = 'card';
-  } else {
+  } else {  
     viewMode.value = 'table';
   }
 };
 
-const fetchTeams = async (query = '') => {
+const fetchTeams = async () => {
   isLoading.value = true;
+  const skip = (currentPage.value - 1) * itemsPerPage.value;
   try {
-    const response = await axios.get(`${baseURL}/api/teams/active`, {
-      params: { q: query }
+    const response = await axios.get(`${baseURL}/api/teams`, {
+      params: { 
+        q: searchQuery.value,
+        skip: skip,
+        limit: itemsPerPage.value 
+      }
     });
-    // Menyesuaikan dengan struktur ProjectView.vue
-    teams.value = response.data.items || response.data; 
+    teams.value = response.data.items; 
+    totalTeams.value = response.data.total;
+    // console.log("team : ", teams.value);
   } catch (error) {
     toast.error("Gagal memuat data tim.");
     console.error("Gagal mengambil data tim:", error);
@@ -104,7 +123,13 @@ const fetchTeams = async (query = '') => {
   }
 };
 
+const handlePageChange = (newPage) => {
+  currentPage.value = newPage;
+  fetchTeams(searchQuery.value);
+}
+
 watch(searchQuery, (newQuery) => {
+  currentPage.value = 1;
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     fetchTeams(newQuery);

@@ -167,7 +167,7 @@
     
     <FilePreviewModal :show="isPreviewModalOpen" :file-url="fileToPreview.url" :file-name="fileToPreview.name" :file-type="fileToPreview.type" @close="closePreviewModal" />
     <ModalWrapper :show="isEditModalOpen" @close="closeEditModal" title="Edit Aktivitas">
-      <FormAktivitas tipe="Simpan" :initial-data="aktivitas" @close="closeEditModal" @submit="handleUpdateActivity" :team-list="teamList" :project-list="projectList" :team-members="teamMembers"/>
+      <FormAktivitas tipe="Simpan" :initial-data="aktivitas" @close="closeEditModal" @submit="handleUpdateActivity" :team-list="teamList" :project-list="projectList" :pegawai-list="pegawaiList" :team-members="teamMembers" />
     </ModalWrapper>
     <ModalWrapper :show="isLinkModalOpen" @close="closeLinkModal" title="Tambah Link Baru">
       <FormTambahLink @close="closeLinkModal" @submit="handleLinkSubmit" />
@@ -232,10 +232,11 @@ const itemToReplace = ref(null);
 const teamList = ref([]);
 const teamMembers = ref([]);
 const projectList = ref([]);
+const pegawaiList = ref([]);
 
 const isProjectLeader = computed (() => {
   const projectLeaderId = aktivitas.value?.project?.projectLeaderId;
-  console.log("Project Leader ID : ", projectLeaderId);
+  // console.log("Project Leader ID : ", projectLeaderId);
   if (projectLeaderId && projectLeaderId === user?.id) {
     return true;
   }
@@ -342,7 +343,7 @@ const fetchDetailAktivitas = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/aktivitas/${aktivitasId}`);
     aktivitas.value = response.data;
-    console.log("Aktivitas : ", aktivitas.value);
+    // console.log("Aktivitas : ", aktivitas.value);
     breadcrumbItems.value[2] = {
         text: aktivitas.value.project.namaProject,
         to: `/project/detail/${aktivitas.value.project.id}`
@@ -360,25 +361,45 @@ const fetchDetailAktivitas = async () => {
 const fetchTeams = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/teams/active`);
-    teamList.value = response.data.map(team => ({
+    const fetchedTeams = response.data.items || []; 
+    teamList.value = fetchedTeams.map(team => ({
       id: team.id,
       namaTim: team.namaTim 
     }));
-    for (const team of response.data) {
-      if (team.users && team.users.length > 0) {
-        teamMembers.value[team.id] = team.users.map(user => ({
-          id: user.id,
-          namaLengkap: user.namaLengkap,
-          username: user.username
-        }));
-      }
-    }
-    console.log("Team members : ", teamMembers.value);
+    // for (const team of response.data) {
+    //   if (team.users && team.users.length > 0) {
+    //     teamMembers.value[team.id] = team.users.map(user => ({
+    //       id: user.id,
+    //       namaLengkap: user.namaLengkap,
+    //       username: user.username
+    //     }));
+    //   }
+    // }
+    // console.log("Team members : ", teamMembers.value);
   } catch (error) {
     toast.error("Gagal memuat daftar tim.");
     console.error("Gagal mengambil data tim:", error);
   }
 };
+
+const fetchPegawai = async () => {
+  try {
+    const response = await axios.get(`${baseURL}/api/users`, {
+      params : {
+        limit : 10000
+      }
+    });
+    const sortedPegawai = response.data.items.sort((a,b) =>{
+      return a.namaLengkap.localeCompare(b.namaLengkap, 'id', { sensitivity: 'base' });
+    });
+
+    pegawaiList.value = sortedPegawai;
+    // console.log('Pegawai List : ', pegawaiList.value);
+  } catch (error) {
+    toast.error("Gagal memuat data pegawai.");
+    console.error("Gagal mengambil data pegawai", error);
+  }
+}
 
 const fetchProjects = async () => {
   try {
@@ -391,7 +412,7 @@ const fetchProjects = async () => {
       teamId: project.teamId,
       projectLeaderId: project.projectLeaderId
     }));
-    console.log(projectList.value);
+    // console.log(projectList.value);
   } catch (error) {
     toast.error("Gagal memuat data project");
     console.error("Gagal memuat data project: ", error);
@@ -402,6 +423,7 @@ onMounted(() => {
   fetchDetailAktivitas(); 
   fetchTeams();
   fetchProjects();
+  fetchPegawai();
 });
 
 // --- Logika untuk Aktivitas (Edit/Hapus) ---
@@ -505,7 +527,7 @@ const handleFileSelectedForChecklist = async (event) => {
   data.append('file', file);
   data.append('keterangan', keterangan);
   data.append('checklist_item_id', checklistItemIdToUpload.value);
-  console.log('data : ',data);
+  // console.log('data : ',data);
   try {
     await axios.post(`${baseURL}/api/aktivitas/${aktivitasId}/dokumen`, data);
       
