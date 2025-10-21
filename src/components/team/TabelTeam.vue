@@ -56,7 +56,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import { useRouter } from 'vue-router';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';

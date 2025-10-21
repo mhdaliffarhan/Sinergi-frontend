@@ -7,22 +7,22 @@
         <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           Selamat Datang di SINERGI
         </h2>
-        <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+        <!-- <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
           Silakan masuk untuk melanjutkan
-        </p>
+        </p> -->
       </div>
 
       <div class="space-y-6">
-        <button class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-400 hover:bg-orange-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <!-- <button class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-400 hover:bg-orange-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
           Masuk dengan Akun Pegawai (SSO)
-        </button>
+        </button> -->
 
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
           </div>
           <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">atau</span>
+            <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"></span>
           </div>
         </div>
 

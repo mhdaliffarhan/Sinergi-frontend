@@ -24,7 +24,6 @@
       <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
           <tr>
-            <th scope="col" class="px-6 py-3 w-16">No</th>
             <th scope="col" class="px-6 py-3">Nama Tim</th>
             <th scope="col" class="px-6 py-3">Ketua Tim</th>
             <th scope="col" class="px-6 py-3">Periode Aktif</th>
@@ -38,7 +37,6 @@
             <td colspan="4" class="px-6 py-4 text-center text-gray-500">Belum ada tim yang dibuat.</td>
           </tr>
           <tr v-for="(team, index) in teams" :key="team.id" class="border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors">
-            <td class="px-6 py-4 text-center">{{ index + 1 }}</td>
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ team.namaTim }}</th>
             <td class="px-6 py-4">
               {{ team.ketuaTim?.namaLengkap || '-' }}

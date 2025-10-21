@@ -478,7 +478,8 @@ const openLinkModal = () => { isLinkModalOpen.value = true; };
 const closeLinkModal = () => { isLinkModalOpen.value = false; };
 const handleLinkSubmit = async (formData) => {
   try {
-    await axios.post(`${baseURL}/api/aktivitas/${aktivitasId}/link`, formData);
+    const payload = { ...formData, tipe: 'LINK' };
+    await axios.post(`${baseURL}/api/aktivitas/${aktivitasId}/link`, payload);
     toast.success("Link berhasil ditambahkan.");
     closeLinkModal();
     await fetchDetailAktivitas();

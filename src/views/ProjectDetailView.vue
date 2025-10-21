@@ -56,18 +56,17 @@
               :slides-per-view="1"
               :space-between="16"
               :pagination="{ clickable: true }"
-              :navigation="true"
               :breakpoints="{
                 640: { // Ukuran layar sm: dan di atas
                   slidesPerView: 2,
                   spaceBetween: 20,
                 },
                 768: { // Ukuran layar md: dan di atas
-                  slidesPerView: 3,
+                  slidesPerView: 2,
                   spaceBetween: 30,
                 },
                 1024: { // Ukuran layar lg: dan di atas
-                  slidesPerView: 4,
+                  slidesPerView: 2,
                   spaceBetween: 40,
                 },
               }"
@@ -97,7 +96,7 @@
               v-for="doc in project.dokumen" 
               :key="doc.id" 
               :dokumen="doc" 
-              :isAnggotaTim="isProjectLeader()"
+              :isAnggotaTim="isAnggotaTim"
               @hapus="confirmDeleteDokumen"
               @preview="handlePreviewRequest" 
               class="p-3" />
@@ -174,9 +173,11 @@ const fileToPreview = ref({ url: '', name: '', type: '' });
 const fileToUpload = ref(null);
 const teamList = ref([]);
 
-const isProjectLeader = (() => {
-  const ProjectLeader_id = project.value?.ProjectLeader_id;
+const isProjectLeader = computed(() => {
+  const ProjectLeader_id = project.value?.ProjectLeaderId;
+
   if (!ProjectLeader_id) return false;
+
   return ProjectLeader_id === user?.id;
 });
 
@@ -187,6 +188,16 @@ const isKetuaTim = computed(() => {
   return team.ketuaTimId === user?.id;
 });
 
+const isAnggotaTim = computed(() => {
+  const projectTeamId = project.value?.team?.id;
+   if (!projectTeamId || !user?.teams || user.teams.length === 0) {
+        return false;
+    }
+  const isMember = user.teams.some(userTeam => userTeam.id === projectTeamId);
+
+    return isMember;
+})
+
 
 // --- FUNGSI UTAMA ---
 const fetchDetailProject = async () => {
@@ -194,8 +205,8 @@ const fetchDetailProject = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/projects/${projectId}`);
     project.value = response.data;
+    console.log("Detail Project : ", project.value);
     breadcrumbItems.value[2].text = project.value?.namaProject ?? 'Detail Project';
-    // console.log("Detail Project : ", response.data);
   } catch (error) {
     const message = error.response?.data?.message || "Gagal memuat detail Project.";
     toast.error(message);
@@ -213,6 +224,7 @@ const fetchTeams = async () => {
       id: team.id,
       namaTim: team.namaTim 
     }));
+    console.log('Daftar Tim : ', teamList.value);
   } catch (error) {
     toast.error("Gagal memuat daftar tim.");
     console.error("Gagal mengambil data tim:", error);
@@ -272,8 +284,12 @@ const openLinkModal = () => { isLinkModalOpen.value = true; };
 const closeLinkModal = () => { isLinkModalOpen.value = false; };
 const handleLinkSubmit = async (formData) => {
   try {
-    // console.log("Data Link : ", formData);
-    await axios.post(`${baseURL}/api/projects/${projectId}/links`, formData);
+    const payload = { 
+      ...formData,
+      tipe: 'LINK',
+      projectId: projectId
+    };
+    await axios.post(`${baseURL}/api/projects/${projectId}/links`, payload);
     toast.success("Link berhasil ditambahkan.");
     closeLinkModal();
     await fetchDetailProject();
@@ -296,7 +312,7 @@ const handleFileUploadSubmit = async (formData) => {
   data.append('file', formData.file);
   data.append('keterangan', formData.keterangan);
   try {
-    // console.log("Data : ", formData);
+    console.log("Data : ", formData);
     await axios.post(`${baseURL}/api/projects/${projectId}/dokumen`, data);
     toast.success("File berhasil diunggah.");
     closeFileModal();

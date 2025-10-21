@@ -105,6 +105,12 @@ const router = createRouter({
         requiredRoles: ['Superadmin', 'Admin']
       }
     },
+    {
+      path: '/notifikasi',
+      name: 'notifikasi-semua',
+      component: () => import('../views/NotifikasiView.vue'), // File baru
+      meta: { requiredAuth: true }
+    },
   ],
 })
 
