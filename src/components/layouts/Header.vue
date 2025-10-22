@@ -62,7 +62,7 @@
                           {{ notif.title }}
                         </span>
                         <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 whitespace-nowrap">
-                          {{ formatTimeAgo(notif.created_at) }}
+                          {{ formatTimeAgo(notif.createdAt) }}
                         </span>
                       </div>
                       
@@ -211,7 +211,7 @@ const fetchNotificationCount = async () => {
 const fetchNotifications = async () => {
     if (!authStore.isAuthenticated) return;
     try {
-        const response = await axios.get(`${baseURL}/api/notifications/header?limit=15`); 
+        const response = await axios.get(`${baseURL}/api/notifications/header?limit=5`); 
         notifications.value = response.data;
     } catch (e) {
         console.error("Gagal mengambil daftar notifikasi:", e);

@@ -59,7 +59,7 @@
 
           <div class="mt-2 sm:mt-0 text-right sm:pl-4 flex-shrink-0">
              <p class="text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">
-                {{ formatTimeAgo(notif.created_at) }}
+                {{ formatTimeAgo(notif.createdAt) }}
             </p>
           </div>
         </div>
@@ -103,14 +103,27 @@ const notifications = ref([]);
 const isLoading = ref(true);
 const currentPage = ref(1);
 const totalNotifikasi = ref(0);
-const itemsPerPage = 20;
+const itemsPerPage = 10;
 const filterStatus = ref(null); 
 
 const totalUnread = ref(0);
 
 const formatTimeAgo = (dateString) => {
-    if (!dateString) return '';
-    return formatDistanceToNowStrict(new Date(dateString), { addSuffix: true, locale: id });
+  if (!dateString) return 'Input kosong';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date format received:', dateString);
+      return `Tidak valid: ${dateString}`; // Tampilkan input asli jika tidak valid
+    }
+    // Coba tampilkan format tanggal biasa dulu
+    // return date.toLocaleString('id-ID');
+    // Jika format biasa muncul, baru coba formatDistanceToNowStrict lagi
+    return formatDistanceToNowStrict(date, { addSuffix: true, locale: id });
+  } catch (error) {
+    console.error('Error formatting date:', dateString, error);
+    return `Error: ${error.message}`; // Tampilkan pesan error
+  }
 };
 
 
@@ -136,7 +149,7 @@ const fetchNotifications = async (page = 1) => {
         notifications.value = response.data.items;
         totalNotifikasi.value = response.data.total;
 
-        // console.log("Notifikasi : ", notifications.value);
+        console.log("Notifikasi : ", notifications.value);
         // Fetch count terpisah untuk tombol
         const countRes = await axios.get(`${baseURL}/api/notifications/count`);
         totalUnread.value = countRes.data.count;

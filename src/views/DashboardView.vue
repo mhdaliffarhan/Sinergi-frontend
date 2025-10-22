@@ -14,6 +14,13 @@
     <div v-else class="space-y-8">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard {{ dashboardTitle }}</h1>
+        <button
+          @click="isModalAktivitasOpen = true"
+          class="mt-4 sm:mt-0 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          <span>Buat Aktivitas</span>
+        </button>
       </div>
 
       <div v-if="isKepalaKantor">
@@ -127,6 +134,18 @@
         </div>
     </div>
   </div>
+
+  <ModalWrapper :show="isModalAktivitasOpen" @close="isModalAktivitasOpen = false" title="Buat Aktivitas Baru">
+    <FormAktivitas
+      @close="isModalAktivitasOpen = false"
+      @submit="handleActivitySubmit"
+      tipe="Buat"
+      :team-list="allTeams"
+      :project-list="projectList"
+      :pegawai-list="allUsers"
+      :team-members="{}" />
+  </ModalWrapper>
+
   <ModalAktivitas v-if="isModalOpen" :aktivitas="selectedAktivitas" @close="closeModal" @go-to-detail="goToAktivitas" />
 </template>
 
@@ -153,6 +172,9 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+import ModalWrapper from '@/components/ModalWrapper.vue';
+import FormAktivitas from '@/components/aktivitas/FormAktivitas.vue';
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
 const router = useRouter();
@@ -165,6 +187,7 @@ let fullCalendarInstance = null;
 const allAktivitas = ref([]);
 const allTeams = ref([]);
 const allUsers = ref([]);
+const projectList = ref([]);
 const team = ref(null);
 const dokumenWajibSaya = ref([]);
 const dokumenWajibTeam = ref([]);
@@ -172,6 +195,7 @@ const selectedTeamId = ref(null);
 const upcomingAktivitasKantor = ref([]);
 const allAktivitasKepalaKantor = ref([]);
 
+const isModalAktivitasOpen = ref(false);
 
 const isModalOpen = ref(false);
 const selectedAktivitas = ref(null);
@@ -244,12 +268,14 @@ const fetchDashboardData = async () => {
             return;
         }
         
-        const [teamsRes, usersRes] = await Promise.all([
+        const [teamsRes, usersRes, projectRes] = await Promise.all([
             axios.get(`${baseURL}/api/teams/active`, { params: { limit: 10000}}),
-            axios.get(`${baseURL}/api/users`, { params: { limit: 10000 } })
+            axios.get(`${baseURL}/api/users`, { params: { limit: 10000 } }),
+            axios.get(`${baseURL}/api/projects`, { params: { limit: 10000 }})
         ]);
         allTeams.value = teamsRes.data.items;
         allUsers.value = usersRes.data.items;
+        projectList.value = projectRes.data.items.map(p => ({ id: p.id ,namaProject: p.namaProject, teamId: p.teamId,  projectLeaderId: p.projectLeaderId }));
 
         if (isKepalaKantor.value) {
             const allAktivitasRes = await axios.get(`${baseURL}/api/aktivitas/kepala`);
@@ -293,6 +319,28 @@ const filterUpcomingAktivitas = () => {
     }).sort((a, b) => {
         return compareAsc(new Date(a.tanggalMulai), new Date(b.tanggalMulai));
     });
+};
+
+// Fungsi Submit untuk Form Aktivitas
+const handleActivitySubmit = async (formData) => {
+  isLoading.value = true; // Tampilkan loading saat submit
+  const payload = { ...formData };
+  // Handle field nullable (tanggal/jam)
+  const nullableFields = ['tanggalMulai', 'tanggalSelesai', 'jamMulai', 'jamSelesai'];
+  nullableFields.forEach(field => { if (payload[field] === '') payload[field] = null; });
+
+  try {
+    await axios.post(`${baseURL}/api/aktivitas`, payload); //
+    toast.success("Aktivitas berhasil dibuat!");
+    isModalAktivitasOpen.value = false; // Tutup modal
+    await fetchDashboardData(); // Muat ulang data dashboard
+  } catch (error) {
+    const errorMsg = error.response?.data?.detail?.[0]?.msg || "Gagal menyimpan. Periksa kembali isian Anda.";
+    toast.error(errorMsg);
+    console.error("Gagal menyimpan aktivitas:", error.response?.data || error.message);
+  } finally {
+    isLoading.value = false; // Sembunyikan loading
+  }
 };
 
 const kalenderEventsData = computed(() => {

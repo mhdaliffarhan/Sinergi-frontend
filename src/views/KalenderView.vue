@@ -217,6 +217,7 @@ import { format, eachDayOfInterval, isWithinInterval, addDays, subMonths, addMon
 import ModalAktivitas from '@/components/aktivitas/ModalAktivitas.vue';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
+const authStore = useAuthStore();
 const toast = useToast();
 const router = useRouter();
 const isModalOpen = ref(false);
@@ -430,6 +431,14 @@ const selectPegawai = (pegawai) => {
 
 const handleBlur = () => {
   setTimeout(() => { showDropdown.value = false; }, 200);
+};
+
+const clearSelectedPegawai = () => {
+  // Set ke string kosong, sama seperti logika "Semua Pegawai"
+  selectedPegawaiId.value = ''; 
+  searchQuery.value = "";
+  showDropdown.value = false;
+  // fetchAktivitas() akan ter-trigger secara otomatis oleh watch()
 };
 
 const daftarPegawaiTimeline = computed(() => {

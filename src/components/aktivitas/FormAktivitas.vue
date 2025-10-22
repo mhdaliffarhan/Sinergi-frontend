@@ -66,13 +66,13 @@
         <p v-if="errors.projectId" class="mt-1 text-xs text-red-500">{{ errors.projectId }}</p>
       </div>
 
-      <div>
-        <label for="anggota" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Pegawai yang Terlibat
-        </label>
-        <div class="relative mt-1">
-          <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="toggleDropdown">
-            <div v-if="selectedMembers.length === 0" class="text-gray-400">Pilih pegawai yang terlibat...</div>
+<div>
+      <label for="anggota" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Pegawai yang Terlibat
+      </label>
+      <div class="relative mt-1">
+        <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="toggleDropdown">
+          <div v-if="selectedMembers.length === 0" class="text-gray-400">Pilih pegawai yang terlibat...</div>
             <div v-else class="flex flex-wrap gap-2">
               <span v-for="member in selectedMembers" :key="member.id" class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-800 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
                 {{ member.namaLengkap }}
@@ -81,19 +81,35 @@
                 </button>
               </span>
             </div>
+        </div>
+
+        <div v-if="isDropdownOpen" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
+          <button
+            type="button"
+            @click.stop="isDropdownOpen = false"
+            class="absolute top-1 right-1 z-20 p-3 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none"
+            title="Tutup"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+
+          <input type="text" v-model="searchQuery" placeholder="Cari anggota..." class="sticky top-0 w-full px-4 py-2 bg-gray-50 border-b border-gray-300 dark:border-gray-600 focus:outline-none text-sm sm:text-sm dark:bg-gray-700 dark:text-white" @click.stop/>
+
+          <div
+            class="px-4 py-2 cursor-pointer sticky top-10 bg-gray-100 dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 font-semibold hover:bg-gray-200 dark:hover:bg-gray-700"
+            @click.stop="toggleSelectAllMembers"
+          >
+            {{ selectAllText }}
           </div>
-          
-          <div v-if="isDropdownOpen" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
-            <input type="text" v-model="searchQuery" placeholder="Cari anggota..." class="sticky top-0 w-full px-4 py-2 bg-gray-50 border-b border-gray-300 dark:border-gray-600 focus:outline-none text-sm  sm:text-sm dark:bg-gray-700 dark:text-white" @click.stop/>
-            <ul class="py-1">
-              <li v-for="user in filteredMembers" :key="user.id" @click="selectMember(user)" class="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700  sm:text-sm dark:bg-gray-700 dark:text-white">
-                <span :class="{'font-bold': isSelected(user.id)}">{{ user.namaLengkap }}</span>
-              </li>
-            </ul>
-            <p v-if="filteredMembers.length === 0" class="text-center text-gray-400 py-4 text-sm">Tidak ada anggota ditemukan.</p>
-          </div>
+
+          <ul class="py-1 pt-0"> <li v-for="user in filteredMembers" :key="user.id" @click="selectMember(user)" class="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm dark:bg-gray-700 dark:text-white">
+              <span :class="{'font-bold': isSelected(user.id)}">{{ user.namaLengkap }}</span>
+            </li>
+          </ul>
+          <p v-if="filteredMembers.length === 0" class="text-center text-gray-400 py-4 text-sm">Tidak ada anggota ditemukan.</p>
         </div>
       </div>
+    </div>
 
 
       <!-- Daftar pegawai yang muncul hanya dari tim yang dipilih -->
@@ -274,12 +290,36 @@ const selectedMembers = ref([]);
 
 // Komputerisasi untuk anggota tim yang difilter
 const filteredMembers = computed(() => {
-  const members = props.pegawaiList || [];
+  const members = props.pegawaiList || []; // Gunakan pegawaiList dari props
   const query = searchQuery.value.toLowerCase();
+  if (!query) return members; // Tampilkan semua jika tidak ada pencarian
   return members.filter(user =>
     user.namaLengkap.toLowerCase().includes(query) || user.username.toLowerCase().includes(query)
   );
 });
+
+// Cek apakah semua anggota yang terfilter sudah dipilih
+const allFilteredSelected = computed(() => {
+  if (filteredMembers.value.length === 0) return false;
+  return filteredMembers.value.every(member => isSelected(member.id));
+});
+
+// Teks untuk tombol Select/Deselect All
+const selectAllText = computed(() => {
+  return allFilteredSelected.value ? '❌ Batal Pilih Semua' : '✅ Pilih Semua';
+});
+
+// Fungsi untuk memilih/batal memilih semua anggota yang terfilter
+const toggleSelectAllMembers = () => {
+  if (allFilteredSelected.value) {
+    // Jika semua sudah terpilih, batalkan pilihan (kosongkan)
+    selectedMembers.value = [];
+  } else {
+    // Jika belum semua terpilih, pilih semua dari filteredMembers
+    // Penting: Buat salinan agar tidak mereferensikan array yang sama
+    selectedMembers.value = [...filteredMembers.value];
+  }
+};
 
 // Method untuk multi-select
 const toggleDropdown = () => { isDropdownOpen.value = !isDropdownOpen.value; };
