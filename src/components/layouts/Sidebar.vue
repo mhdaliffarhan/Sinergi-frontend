@@ -84,7 +84,7 @@ const menuItems = computed(() => {
   const baseMenu = [
     { label: 'Dashboard', to: '/dashboard', icon: '📊' },
     { label: 'Kalender', to: '/kalender', icon: '📅' },
-    { label: 'Team', to: '/team', icon: '👥'},
+    { label: 'Tim', to: '/team', icon: '👥'},
     { label: 'Project', to: '/project', icon: '💼'},
     { 
       label: 'Aktivitas', to: '/aktivitas/daftar', icon: '✅'

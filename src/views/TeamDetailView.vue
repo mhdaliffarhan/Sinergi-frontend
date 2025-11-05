@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+  <div class="container mx-auto p-4">
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -12,179 +12,302 @@
     </div>
 
     <div v-else>
-      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        <div class="md:mb-0">
-          <p class="text-base font-semibold text-gray-500 dark:text-gray-400">Tim</p>
-          <div class="flex items-center gap-2 mt-1">
-            <div class="w-6 h-6 rounded-full" :style="{ backgroundColor: team.warna || '#3b82f6' }"></div>
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{{ team.namaTim }}</h1>
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 transition-all">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          
+          <!-- Info Tim -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <!-- Warna Tim -->
+            <div
+              class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-md"
+              :style="{ backgroundColor: team.warna || '#3b82f6' }"
+            >
+              {{ team.namaTim?.charAt(0) || '?' }}
+            </div>
+
+            <!-- Nama & Info -->
+            <div>
+              <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                {{ team.namaTim }}
+              </h1>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+                <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                Aktif: {{ formatDate(team.validFrom) }} – {{ formatDate(team.validUntil) }}
+              </p>
+            </div>
           </div>
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Periode Aktif: {{ formatDate(team.validFrom) }} - {{ formatDate(team.validUntil) }}
-          </p>
-        </div>
-        
-        <div class="flex-shrink-0 w-full md:w-auto">
-          <button v-if="isSuperadminOrKetuaTim" @click="openEditModal" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors">
-            Edit Tim
-          </button>
+
+          <!-- Tombol Edit -->
+          <div class="flex items-center justify-end sm:justify-center md:justify-end w-full sm:w-auto">
+            <button
+              v-if="isSuperadminOrKetuaTim"
+              @click="openEditModal"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                
+              Edit Tim
+            </button>
+          </div>
         </div>
       </div>
 
-      <section class="mt-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div class="flex items-center gap-4">
-            <span class="text-2xl">👥</span>
+      <section class="mt-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <!-- Anggota -->
+          <div class="flex items-center gap-6 p-4 bg-white dark:bg-gray-800  border border-gray-200 dark:border-gray-700 overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-200" >
+            <div
+              class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-2xl"
+            >
+              👥
+            </div>
             <div>
               <span class="text-xl font-bold text-gray-900 dark:text-white">{{ team.users?.length ?? 0 }}</span>
               <p class="text-sm text-gray-500 dark:text-gray-400">Anggota</p>
             </div>
           </div>
-          <div class="flex items-center gap-4">
-            <span class="text-2xl">💼</span>
+
+          <!-- Project -->
+          <div
+            class="flex items-center gap-6 p-4 bg-white dark:bg-gray-800  border border-gray-200 dark:border-gray-700 overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+          >
+            <div
+              class="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-2xl"
+            >
+              💼
+            </div>
             <div>
               <span class="text-xl font-bold text-gray-900 dark:text-white">{{ team.projects?.length ?? 0 }}</span>
               <p class="text-sm text-gray-500 dark:text-gray-400">Project</p>
             </div>
           </div>
-          <div class="flex items-center gap-4">
-            <span class="text-2xl">✅</span>
+
+          <!-- Aktivitas -->
+          <div
+            class="flex items-center gap-6 p-4 bg-white dark:bg-gray-800  border border-gray-200 dark:border-gray-700 overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+          >
+            <div
+              class="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400 text-2xl"
+            >
+              ✅
+            </div>
             <div>
               <span class="text-xl font-bold text-gray-900 dark:text-white">{{ totalAktivitas }}</span>
               <p class="text-sm text-gray-500 dark:text-gray-400">Aktivitas</p>
             </div>
           </div>
         </div>
-        
-        <hr class="my-4 border-gray-200 dark:border-gray-700">
 
         <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Ketua Tim & Anggota</h2>
-        <div v-if="team.users?.length > 0" class="flex flex-wrap items-center gap-4">
-          <div v-if="team.ketuaTim" class="flex flex-col items-center">
-            <div 
-              class="relative h-16 w-16 rounded-full flex items-center justify-center text-base font-semibold text-gray-600 dark:text-gray-300 ring-4 ring-green-500 transition duration-150 transform hover:scale-110 hover:z-10 cursor-pointer"
-              :title="team.ketuaTim.namaLengkap + ' (Ketua Tim)'"
-              @click="goToUserDetail(team.ketuaTim.id)"
+        <div v-if="team.users?.length > 0">
+          <!-- Tabs -->
+          <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+            <button
+              v-for="tab in ['Ringkasan', 'Daftar Lengkap']"
+              :key="tab"
+              @click="activeTab = tab"
+              :class="[
+                'px-4 py-2 text-sm font-medium transition-colors duration-150',
+                activeTab === tab
+                  ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              ]"
             >
-              <img v-if="team.ketuaTim.fotoProfilUrl"
-                :src="getProfileUrl(team.ketuaTim.fotoProfilUrl)"
-                alt="Profil"
-                class="h-full w-full rounded-full object-cover"
-              />
-              <div v-else
-                class="h-full w-full rounded-full flex items-center justify-center text-white text-base"
-                :style="{ backgroundColor: getSoftRandomColor(team.ketuaTim.id) }"
-              >
-                {{ getInitials(team.ketuaTim.namaLengkap) }}
-              </div>
-            </div>
-            <p class="text-xs text-green-500 font-bold mt-2 text-center">Ketua Tim</p>
+              {{ tab }}
+            </button>
           </div>
-          
-          <div class="flex flex-wrap -space-x-3">
-            <div 
-              v-for="user in filteredUsers" 
-              :key="user.id" 
-              class="relative h-12 w-12 rounded-full flex items-center justify-center text-xs font-semibold text-gray-600 dark:text-gray-300 ring-2 ring-white dark:ring-gray-800 transition duration-150 transform hover:scale-110 hover:z-10 cursor-pointer"
-              :title="user.namaLengkap"
-              @click="goToUserDetail(user.id)"
-            >
-              <img v-if="user.fotoProfilUrl"
-                :src="getProfileUrl(user.fotoProfilUrl)"
-                alt="Profil"
-                class="h-full w-full rounded-full object-cover"
-              />
-              <div v-else
-                class="h-full w-full rounded-full flex items-center justify-center text-white"
-                :style="{ backgroundColor: getSoftRandomColor(user.id) }"
+
+          <!-- Ringkasan -->
+          <div v-if="activeTab === 'Ringkasan'" class="flex flex-wrap items-center gap-4">
+            <div v-if="team.ketuaTim" class="flex flex-col items-center">
+              <div 
+                class="relative h-16 w-16 rounded-full flex items-center justify-center text-base font-semibold text-gray-600 dark:text-gray-300 ring-4 ring-green-500 transition duration-150 transform hover:scale-110 hover:z-10 cursor-pointer"
+                :title="team.ketuaTim.namaLengkap + ' (Ketua Tim)'"
+                @click="goToUserDetail(team.ketuaTim.id)"
               >
-                {{ getInitials(user.namaLengkap) }}
+                <img v-if="team.ketuaTim.fotoProfilUrl"
+                  :src="getProfileUrl(team.ketuaTim.fotoProfilUrl)"
+                  alt="Profil"
+                  class="h-full w-full rounded-full object-cover"
+                />
+                <div v-else
+                  class="h-full w-full rounded-full flex items-center justify-center text-white text-base"
+                  :style="{ backgroundColor: getSoftRandomColor(team.ketuaTim.id) }"
+                >
+                  {{ getInitials(team.ketuaTim.namaLengkap) }}
+                </div>
+              </div>
+              <p class="text-xs text-green-500 font-bold mt-2 text-center">Ketua Tim</p>
+            </div>
+
+            <div class="flex flex-wrap -space-x-3">
+              <div 
+                v-for="user in filteredUsers" 
+                :key="user.id" 
+                class="relative h-12 w-12 rounded-full flex items-center justify-center text-xs font-semibold text-gray-600 dark:text-gray-300 ring-2 ring-white dark:ring-gray-800 transition duration-150 transform hover:scale-110 hover:z-10 cursor-pointer"
+                :title="user.namaLengkap"
+                @click="goToUserDetail(user.id)"
+              >
+                <img v-if="user.fotoProfilUrl"
+                  :src="getProfileUrl(user.fotoProfilUrl)"
+                  alt="Profil"
+                  class="h-full w-full rounded-full object-cover"
+                />
+                <div v-else
+                  class="h-full w-full rounded-full flex items-center justify-center text-white"
+                  :style="{ backgroundColor: getSoftRandomColor(user.id) }"
+                >
+                  {{ getInitials(user.namaLengkap) }}
+                </div>
               </div>
             </div>
+          </div>
+
+          <!-- Daftar Lengkap -->
+          <div v-else-if="activeTab === 'Daftar Lengkap'" class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+            <table class="min-w-full text-sm text-left text-gray-600 dark:text-gray-300">
+              <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th scope="col" class="px-4 py-3 w-16 text-center">Foto</th>
+                  <th scope="col" class="px-4 py-3">Nama Lengkap</th>
+                  <th scope="col" class="px-4 py-3 text-center hidden sm:table-cell">Peran</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="user in [team.ketuaTim, ...filteredUsers]"
+                  :key="user.id"
+                  @click="goToUserDetail(user.id)"
+                  class="cursor-pointer border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <td class="px-4 py-3 text-center">
+                    <div class="h-10 w-10 rounded-full overflow-hidden mx-auto">
+                      <img v-if="user.fotoProfilUrl"
+                        :src="getProfileUrl(user.fotoProfilUrl)"
+                        alt="Profil"
+                        class="h-full w-full object-cover"
+                      />
+                      <div
+                        v-else
+                        class="h-full w-full flex items-center justify-center text-xs font-semibold text-white rounded-full"
+                        :style="{ backgroundColor: getSoftRandomColor(user.id) }"
+                      >
+                        {{ getInitials(user.namaLengkap) }}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                    {{ user.namaLengkap }}
+                  </td>
+                  <td class="px-4 py-3 text-center hidden sm:table-cell">
+                    <span
+                      v-if="team.ketuaTim?.id === user.id"
+                      class="text-green-600 dark:text-green-400 font-semibold"
+                    >
+                      Ketua Tim
+                    </span>
+                    <span v-else-if="user.peran == 'member'" class="text-gray-500 dark:text-gray-400">Anggota</span>
+                    <span v-else-if="user.peran == 'operator'" class="text-gray-500 dark:text-gray-400">Operator</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         <div v-else class="text-center text-gray-500 dark:text-gray-400 p-6">
           Tidak ada anggota yang terdaftar dalam tim ini.
         </div>
+
       </section>
       <section class="mt-8">
         <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Proyek dan Aktivitas</h2>
-        <div v-if="team.projects?.length > 0" class="space-y-6">
-          <div v-for="project in team.projects" :key="project.id" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
-            <div @click="toggleProject(project.id)" class="cursor-pointer p-4 sm:p-6 flex items-center justify-between transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-              <div class="flex items-center gap-4">
-                <span class="text-sm font-medium text-blue-500 dark:text-blue-400">
-                  {{ project.projectLeader?.namaLengkap || 'Tidak ada leader' }}
-                </span>
-                <router-link :to="{ name: 'project-detail', params: { id: project.id } }" class="text-lg font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+
+        <div v-if="team.projects?.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            v-for="project in team.projects"
+            :key="project.id"
+            class="bg-white dark:bg-gray-800 shadow-md rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition hover:shadow-lg"
+          >
+            <!-- Header Proyek -->
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-5 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+              @click="toggleProject(project.id)"
+            >
+              <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <router-link
+                  :to="{ name: 'project-detail', params: { id: project.id } }"
+                  class="text-base font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-1"
+                >
                   {{ project.namaProject }}
                 </router-link>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  👤 {{ project.projectLeader?.namaLengkap || 'Tidak ada leader' }}
+                </span>
               </div>
-              <div class="flex items-center gap-4">
-                <span class="text-sm text-gray-500 dark:text-gray-400 hidden md:inline">
+
+              <div class="flex items-center gap-2 mt-2 sm:mt-0">
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   {{ project.aktivitas?.length ?? 0 }} Aktivitas
                 </span>
-                <svg :class="{'rotate-180': expandedProjects[project.id]}" class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <svg
+                  :class="{'rotate-180': expandedProjects[project.id]}"
+                  class="w-4 h-4 text-gray-400 transform transition-transform duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
             </div>
 
-            <div v-show="expandedProjects[project.id]" class="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
-              <div v-if="project.aktivitas?.length > 0">
-                <div class="overflow-x-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                  <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                      <tr>
-                        <th scope="col" class="px-6 py-3 w-1/2">
-                          Nama Aktivitas
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-center">
-                          Jadwal Pelaksanaan
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr 
-                        v-for="aktivitas in project.aktivitas" 
-                        :key="aktivitas.id" 
-                        @click="goToAktivitasDetail(aktivitas.id)"
-                        class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors"
-                      >
-                        <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                          <div class="flex flex-col gap-1">
-                            <span class="inline-flex items-center w-fit px-2 py-1 text-xs font-medium rounded-full text-white"
-                              :style="{ backgroundColor: team.warna || '#3b82f6' }">
-                              {{ team.namaTim || '-' }}
-                            </span>
-                            <span class="font-medium">
-                              {{ aktivitas.namaAktivitas }}
-                            </span>
-                          </div>
-                        </td>
-                        <td class="px-6 py-4 text-center">
-                          <div class="flex flex-col">
-                            <span class="flex items-center gap-2">
-                              <span>🗓️</span>
-                              <span>{{ formatJadwal(aktivitas).tanggal }}</span>
-                            </span>
-                            <span v-if="formatJadwal(aktivitas).waktu" class="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                              <span>🕒</span>
-                              <span>{{ formatJadwal(aktivitas).waktu }}</span>
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <!-- Daftar Aktivitas Mini -->
+            <transition name="fade">
+              <div
+                v-show="expandedProjects[project.id]"
+                class="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-3 sm:p-4 text-sm"
+              >
+                <div v-if="project.aktivitas?.length > 0" class="space-y-2">
+                  <div
+                    v-for="aktivitas in project.aktivitas.slice(0, 3)"
+                    :key="aktivitas.id"
+                    @click="goToAktivitasDetail(aktivitas.id)"
+                    class="flex justify-between items-start bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
+                  >
+                    <div class="flex flex-col">
+                      <span class="text-gray-900 dark:text-white font-medium line-clamp-1">
+                        {{ aktivitas.namaAktivitas }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                        🗓️ {{ formatJadwal(aktivitas).tanggal }}
+                        <span v-if="formatJadwal(aktivitas).waktu">• {{ formatJadwal(aktivitas).waktu }}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Link Lihat Semua -->
+                  <router-link
+                    :to="{ name: 'project-detail', params: { id: project.id } }"
+                    class="block text-center text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2 font-medium"
+                  >
+                    Lihat Semua Aktivitas →
+                  </router-link>
+                </div>
+
+                <div v-else class="text-center text-gray-500 dark:text-gray-400 py-2">
+                  Belum ada aktivitas.
                 </div>
               </div>
-              <div v-else class="text-center text-gray-500 dark:text-gray-400">
-                Project ini belum memiliki aktivitas.
-              </div>
-            </div>
+            </transition>
           </div>
         </div>
-        <div v-else class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-center text-gray-500 dark:text-gray-400">
+
+        <!-- Tidak ada proyek -->
+        <div
+          v-else
+          class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 text-center text-gray-500 dark:text-gray-400"
+        >
           Tim ini belum memiliki proyek atau aktivitas.
         </div>
       </section>
@@ -227,6 +350,7 @@ const isLoading = ref(true);
 const isEditModalOpen = ref(false);
 const expandedProjects = ref({});
 const allUsers = ref([]);
+const activeTab = ref('Ringkasan');
 
 const isSuperadminOrKetuaTim = computed(() => {
   return authStore.user?.sistemRole.namaRole === 'Superadmin' || authStore.user?.id === team.value?.ketuaTim?.id;
@@ -263,7 +387,7 @@ const fetchTeamDetails = async () => {
     ]);
     team.value = teamRes.data;
     allUsers.value = usersRes.data.items;
-    // console.log("Data tim : ", team.value);
+    console.log("Data tim : ", team.value);
   } catch (error) {
     toast.error("Gagal memuat detail tim.");
     console.error("Error fetching team details:", error);
@@ -367,3 +491,25 @@ const getProfileUrl = (path) => {
   return path;
 };
 </script>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+
+.fade-scale-enter-active {
+  transition: all 0.3s ease;
+}
+.fade-scale-enter-from {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+</style>

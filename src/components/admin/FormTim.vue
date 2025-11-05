@@ -30,6 +30,33 @@
         <p v-if="errors.ketuaTimId" class="mt-1 text-xs text-red-500">{{ errors.ketuaTimId }}</p>
       </div>
 
+      <div>
+        <label for="operator" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Operator Tim (Opsional)</label>
+        <div class="relative mt-1">
+          <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
+            <div v-if="selectedOperators.length === 0" class="text-gray-400">Pilih satu atau lebih operator...</div>
+            <div v-else class="flex flex-wrap gap-2">
+              <span v-for="operator in selectedOperators" :key="operator.id" class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-800 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
+                {{ operator.namaLengkap }}
+                <button type="button" @click.stop="removeOperator(operator.id)" class="ml-1 -mr-0.5 h-4 w-4 text-blue-500 hover:text-blue-700">
+                  <svg class="h-full w-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </span>
+            </div>
+          </div>
+          
+          <div v-if="isDropdownOpen" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
+            <input type="text" v-model="searchQuery" placeholder="Cari pengguna..." class="sticky top-0 w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600 focus:outline-none text-sm dark:text-white" @click.stop/>
+            <ul class="py-1">
+              <li v-for="user in filteredUsersForOperator" :key="user.id" @click="selectOperator(user)" class="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-sm dark:text-white">
+                <span :class="{'font-bold': isOperatorSelected(user.id)}">{{ user.namaLengkap }}</span>
+              </li>
+            </ul>
+            <p v-if="filteredUsersForOperator.length === 0" class="text-center text-gray-400 py-4 text-sm">Pengguna tidak ditemukan.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label for="valid-from" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Periode Aktif Mulai</label>
@@ -86,45 +113,87 @@
 </template>
 
 <script setup>
-import { reactive, watchEffect } from 'vue';
+import { reactive, watchEffect, ref, computed } from 'vue';
 
 const props = defineProps({
   initialData: { type: Object, default: null },
-  userList: { type: Array, required: true } // Prop baru untuk menerima daftar pengguna
+  userList: { type: Array, required: true }
 });
 
 const emit = defineEmits(['close', 'submit']);
-
 const form = reactive({
   namaTim: '',
   validFrom: null,
   validUntil: null,
   ketuaTimId: null,
-  warna: '#3b82f6'
+  warna: '#3b82f6',
+  operator_ids: []
 });
 
 const errors = reactive({
   namaTim: null,
   validUntil: null,
+  ketuaTimId: null,
+  validFrom: null,
 });
 
+const isDropdownOpen = ref(false);
+const searchQuery = ref('');
+const selectedOperators = ref([]);
+
+// Filter user untuk dropdown operator
+const filteredUsersForOperator = computed(() => {
+  const query = searchQuery.value.toLowerCase();
+  // Filter juga agar ketua tim tidak muncul di pilihan operator
+  const availableUsers = props.userList.filter(user => user.id !== form.ketuaTimId);
+  if (!query) return availableUsers;
+  return availableUsers.filter(user =>
+    user.namaLengkap.toLowerCase().includes(query)
+  );
+});
+
+// Fungsi-fungsi untuk mengelola multi-select
+const isOperatorSelected = (id) => selectedOperators.value.some(op => op.id === id);
+const selectOperator = (user) => {
+  if (!isOperatorSelected(user.id)) {
+    selectedOperators.value.push(user);
+  } else {
+    removeOperator(user.id);
+  }
+};
+const removeOperator = (id) => {
+  selectedOperators.value = selectedOperators.value.filter(op => op.id !== id);
+};
+
 watchEffect(() => {
-  // Reset form
   Object.assign(form, {
     namaTim: '', 
     validFrom: null, 
     validUntil: null, 
     ketuaTimId: null,
-    warna: '#3b82f6'
+    warna: '#3b82f6',
+    operator_ids: []
   });
+  selectedOperators.value = [];
   Object.keys(errors).forEach(key => errors[key] = null);
 
   if (props.initialData) {
     form.namaTim = props.initialData.namaTim || '';
     form.validFrom = props.initialData.validFrom?.split('T')[0] || null;
     form.validUntil = props.initialData.validUntil?.split('T')[0] || null;
-    form.ketuaTimId = props.initialData.ketuaTim?.id || null; 
+    form.ketuaTimId = props.initialData.ketuaTim?.id || null;
     form.warna = props.initialData.warna || '#3b82f6';
+
+    // Isi selectedOperators JIKA data operators ada di initialData
+    if (props.initialData.operators && Array.isArray(props.initialData.operators)) {
+        console.log("Found operators in initialData:", JSON.parse(JSON.stringify(props.initialData.operators))); // DEBUG LOG 2
+        // Pastikan kita membuat salinan array untuk reaktivitas
+        selectedOperators.value = [...props.initialData.operators];
+    } else {
+        console.log("No operators found in initialData or not an array."); // DEBUG LOG 3
+    }
+  } else {
+      console.log("FormTim: Not in edit mode or no initialData."); // DEBUG LOG 4
   }
 });
 
@@ -161,6 +230,7 @@ const validate = () => {
 };
 
 const handleSubmit = () => {
+  form.operator_ids = selectedOperators.value.map(op => op.id);
   if (validate()) {
     emit('submit', form);
   }

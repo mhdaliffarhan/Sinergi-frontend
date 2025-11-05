@@ -6,7 +6,7 @@ import LoginView from '../views/LoginView.vue'
 import TeamView from '@/views/TeamView.vue'
 import AktivitasDashboardView from '../views/AktivitasDashboardView.vue'
 import AktivitasDaftarView from '../views/AktivitasDaftarView.vue'
-import ProfileView from '@/views/ProfileView.vue'
+import ProfileView from '@/views/ProfileView.vue' 
 import ProjectView from '@/views/ProjectView.vue'
 
 const router = createRouter({
@@ -20,6 +20,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView
+    },
+    {
+      path: '/public/aktivitas/:public_id',
+      name: 'public-aktivitas-detail',
+      component: () => import('../views/PublicAktivitasView.vue')
     },
     {
       path: '/profil',
@@ -111,6 +116,11 @@ const router = createRouter({
       component: () => import('../views/NotifikasiView.vue'), // File baru
       meta: { requiredAuth: true }
     },
+    {
+      path: '/:pathMatch(.*)*', 
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue')
+    }
   ],
 })
 

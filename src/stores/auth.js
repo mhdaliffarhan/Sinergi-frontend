@@ -24,6 +24,14 @@ export const useAuthStore = defineStore('auth', () => {
     const role = user.value?.sistemRole?.namaRole;
     return role === 'Superadmin';
   });
+
+  const isOperator = computed(() => {
+    if (user.value && user.value.teams && user.value.teams.length > 0) {
+      return user.value.teams.some(team => team.peran === 'operator');
+    }
+    return false;
+  });
+
   function setToken(newToken) {
     localStorage.setItem('token', newToken);
     token.value = newToken;
@@ -80,5 +88,16 @@ export const useAuthStore = defineStore('auth', () => {
     toast.success('Anda berhasil Logout!');
   }
 
-  return { token, user, isAuthenticated, userRole, isAdmin, isSuperAdmin, login, fetchUser, logout };
+  return {
+    token,
+    user,
+    isAuthenticated,
+    userRole,
+    isAdmin,
+    isSuperAdmin,
+    isOperator,
+    login,
+    fetchUser,
+    logout
+  };
 });

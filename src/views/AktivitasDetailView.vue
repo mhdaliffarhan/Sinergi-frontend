@@ -33,13 +33,33 @@
                         Unduh Semua File     
                       </button>
                     </MenuItem> -->
+                    <MenuItem v-slot="{ active }">
+                      <button 
+                        @click="copyPublicLink" 
+                        :class="[
+                          active ? 'bg-gray-100 dark:bg-gray-700' : '', 
+                          'text-gray-700 dark:text-gray-200 block w-full text-left px-4 py-2 text-sm flex items-center gap-3'
+                        ]"
+                      >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                        </svg>
+                        Salin Link Publik
+                      </button>
+                    </MenuItem>
                     <MenuItem v-slot="{ active }" v-if="isAnggotaTim">
-                      <button @click="openEditModal" :class="[active ? 'bg-blue-100 dark:bg-blue-700' : '', 'text-blue-700 dark:text-blue-200 block w-full text-left px-4 py-2 text-sm']">
+                      <button @click="openEditModal" :class="[active ? 'bg-blue-100 dark:bg-blue-700' : '', 'text-blue-700 dark:text-blue-200 block w-full text-left px-4 py-2 text-sm flex items-center gap-3']">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
                         Edit Aktivitas
                       </button>
                     </MenuItem>
                     <MenuItem v-slot="{ active }" v-if="isAnggotaTim">
-                      <button @click="confirmDeleteActivity" :class="[active ? 'bg-red-100 dark:bg-red-800' : '', 'text-red-700 dark:text-red-300 block w-full text-left px-4 py-2 text-sm']">
+                      <button @click="confirmDeleteActivity" :class="[active ? 'bg-red-100 dark:bg-red-800' : '', 'text-red-700 dark:text-red-300 block w-full text-left px-4 py-2 text-sm flex items-center gap-3']">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.54 0c-.342.052-.682.107-1.022.166m11.518 0c-3.478-.397-7.04-.397-10.518 0M4.772 5.79m14.456 0a48.108 48.108 0 0 1-3.478-.397m-12.54 0c.342.052.682.107 1.022.166m-1.022-.165L4.772 5.79m14.456 0-3.102-3.102A2.25 2.25 0 0 0 15.093 2.188h-6.186a2.25 2.25 0 0 0-1.58 2.684l.21.631m-.21-.631L5.186 5.79m0 0A48.108 48.108 0 0 1 8.66 5.397m5.68 0a48.108 48.108 0 0 0 3.478-.397M6.63 11.077 12 11.077m0 0L17.37 11.077M12 11.077V16.5m0 4.875h.008v.008H12v-.008Z" />
+                        </svg>
                         Hapus Aktivitas
                       </button>
                     </MenuItem>
@@ -233,6 +253,29 @@ const teamList = ref([]);
 const teamMembers = ref([]);
 const projectList = ref([]);
 const pegawaiList = ref([]);
+
+const copyPublicLink = async () => {
+  // Pastikan data aktivitas dan publicId sudah dimuat
+  if (!aktivitas.value || !aktivitas.value.publicId) {
+    toast.error("Gagal mendapatkan link, data aktivitas tidak lengkap.");
+    return;
+  }
+
+  // Menggunakan window.location.origin untuk mendapatkan URL dasar secara dinamis
+  const baseUrl = window.location.origin;
+  
+  // Buat URL lengkap
+  const publicUrl = `${baseUrl}/public/aktivitas/${aktivitas.value.publicId}`;
+
+  try {
+    // Gunakan Clipboard API modern
+    await navigator.clipboard.writeText(publicUrl);
+    toast.success("Link publik berhasil disalin ke clipboard!");
+  } catch (err) {
+    console.error("Gagal menyalin link:", err);
+    toast.error("Gagal menyalin link. Coba lagi secara manual.");
+  }
+};
 
 const isProjectLeader = computed (() => {
   const projectLeaderId = aktivitas.value?.project?.projectLeaderId;

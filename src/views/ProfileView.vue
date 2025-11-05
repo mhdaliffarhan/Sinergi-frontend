@@ -1,88 +1,150 @@
 <template>
-  <div class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-4xl mx-auto space-y-8">
+  <div
+    class="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
+  >
+    <div class="max-w-6xl mx-auto space-y-10">
       <!-- Header -->
-      <div class="flex flex-col items-center space-y-4">
-        <ProfilePicture
-          :user="authStore"
-        />
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Profil Saya
-        </h1>
-      </div>
-
-      <!-- Card 1: Informasi Akun -->
-      <div class="bg-white dark:bg-gray-800 shadow rounded-2xl p-6 transition hover:shadow-lg">
-        <h2 class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-          Informasi Akun
-        </h2>
-        <div class="space-y-3">
-          <div class="flex justify-between text-sm sm:text-base">
-            <span class="text-gray-600 dark:text-gray-400">Username</span>
-            <span class="font-medium text-gray-900 dark:text-gray-100">{{ authStore.user?.username }}</span>
-          </div>
-          <div class="flex justify-between text-sm sm:text-base">
-            <span class="text-gray-600 dark:text-gray-400">Nama Lengkap</span>
-            <span class="font-medium text-gray-900 dark:text-gray-100">{{ authStore.user?.namaLengkap  }}</span>
-          </div>
-          <div v-if="user.role_sistem === 'admin' || user.role_sistem === 'superadmin'" 
-               class="flex justify-between text-sm sm:text-base">
-            <span class="text-gray-600 dark:text-gray-400">Role Sistem</span>
-            <span class="font-medium text-gray-900 dark:text-gray-100">{{ user.role_sistem }}</span>
-          </div>
-          <div v-for="(tim, index) in user.tim_aktif" :key="index" 
-               class="flex justify-between text-sm sm:text-base">
-            <span class="text-gray-600 dark:text-gray-400">Tim {{ index + 1 }}</span>
-            <span class="font-medium text-gray-900 dark:text-gray-100">
-              {{ tim.nama }} ({{ tim.jabatan }})
-            </span>
-          </div>
+      <div class="flex flex-col items-center text-center space-y-4">
+        <ProfilePicture :user="authStore" />
+        <div>
+          <h1
+            class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 transition-colors"
+          >
+            Profil Saya
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base mt-1">
+            Kelola informasi akun dan keamanan Anda
+          </p>
         </div>
       </div>
-      
-      <!-- Card 2: Ganti Password -->
-      <div class="bg-white dark:bg-gray-800 shadow rounded-2xl p-6 transition hover:shadow-lg">
-        <h2 class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-          Ganti Password
-        </h2>
-        <form @submit.prevent="updatePassword" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password Lama</label>
-            <input 
-              v-model="form.oldPassword" 
-              type="password"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-            />
+
+      <!-- Konten utama: Informasi Akun & Ganti Password -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Card 1: Informasi Akun -->
+        <div
+          class="bg-white dark:bg-gray-800 shadow-md hover:shadow-xl rounded-2xl p-6 sm:p-8 transition-all duration-300 border border-gray-100 dark:border-gray-700"
+        >
+          <h2
+            class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-5 flex items-center gap-2"
+          >
+            <span class="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+            Informasi Akun
+          </h2>
+
+          <div class="space-y-4 divide-y divide-gray-200 dark:divide-gray-700">
+            <div class="py-2">
+              <p class="text-gray-600 dark:text-gray-400 text-sm">Username</p>
+              <p
+                class="font-medium text-gray-900 dark:text-gray-100 break-words"
+              >
+                {{ authStore.user?.username }}
+              </p>
+            </div>
+
+            <div class="py-2">
+              <p class="text-gray-600 dark:text-gray-400 text-sm">
+                Nama Lengkap
+              </p>
+              <p
+                class="font-medium text-gray-900 dark:text-gray-100 break-words"
+              >
+                {{ authStore.user?.namaLengkap }}
+              </p>
+            </div>
+
+            <div
+              v-if="user.role_sistem === 'admin' || user.role_sistem === 'superadmin'"
+              class="py-2"
+            >
+              <p class="text-gray-600 dark:text-gray-400 text-sm">Role Sistem</p>
+              <p class="font-medium text-gray-900 dark:text-gray-100 capitalize">
+                {{ user.role_sistem }}
+              </p>
+            </div>
+
+            <div
+              v-for="(tim, index) in user.tim_aktif"
+              :key="index"
+              class="py-2"
+            >
+              <p class="text-gray-600 dark:text-gray-400 text-sm">
+                Tim {{ index + 1 }}
+              </p>
+              <p class="font-medium text-gray-900 dark:text-gray-100">
+                {{ tim.nama }} ({{ tim.jabatan }})
+              </p>
+            </div>
           </div>
+        </div>
+
+        <!-- Card 2: Ganti Password -->
+        <div
+          class="bg-white dark:bg-gray-800 shadow-md hover:shadow-xl rounded-2xl p-6 sm:p-8 transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col justify-between"
+        >
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password Baru</label>
-            <input 
-              v-model="form.newPassword" 
-              type="password"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-            />
+            <h2
+              class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-5 flex items-center gap-2"
+            >
+              <span class="inline-block w-2 h-2 bg-red-500 rounded-full"></span>
+              Ganti Password
+            </h2>
+
+            <form @submit.prevent="updatePassword" class="space-y-5">
+              <div class="space-y-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >Password Lama</label
+                >
+                <input
+                  v-model="form.oldPassword"
+                  type="password"
+                  required
+                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition duration-200"
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >Password Baru</label
+                >
+                <input
+                  v-model="form.newPassword"
+                  type="password"
+                  required
+                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition duration-200"
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >Konfirmasi Password Baru</label
+                >
+                <input
+                  v-model="form.confirmPassword"
+                  type="password"
+                  required
+                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white transition duration-200"
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="w-full inline-flex justify-center py-3 px-6 text-sm font-semibold rounded-xl shadow-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Simpan Password
+              </button>
+            </form>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Konfirmasi Password Baru</label>
-            <input 
-              v-model="form.confirmPassword" 
-              type="password"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-            />
-          </div>
-          <button 
-            type="submit" 
-            class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none transition duration-200">
-            Simpan Password
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+
+
 
 <script setup>
 import { ref } from "vue";

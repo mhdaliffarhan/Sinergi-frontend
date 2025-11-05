@@ -10,9 +10,9 @@
 
         <Header />
 
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 pt-16 p-6 pt-20 md:px-16">
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 pt-20 p-4">
           <router-view />
-        </main>
+        </main> 
       </div>
       <div
         v-if="uiStore.isSidebarOpen && isMobile"
@@ -39,7 +39,7 @@ const uiStore = useUIStore();
 // Buat sebuah computed property yang akan bernilai 'true' atau 'false'
 // berdasarkan nama rute saat ini.
 const showMainLayout = computed(() => {
-  const layoutLessRoutes = ['login', 'landing'];
+  const layoutLessRoutes = ['login', 'landing', 'public-aktivitas-detail', 'not-found'];
 
   return !layoutLessRoutes.includes(route.name);
 });

@@ -21,7 +21,7 @@
   <div class="flex-grow pt-6 overflow-y-auto">
     <div v-if="activeTab === 'detail'">
       <FormTim
-        :initial-data="team"
+        :initial-data="initialDataForForm"
         :user-list="props.userList"
         @submit="handleUpdate"
         @close="closeModal"
@@ -40,7 +40,7 @@
                 &times;
               </button>
             </div>
-            <p v-if="teamMembers.length === 0" class="text-sm text-center text-gray-400 mt-4">Belum ada anggota.</p>
+            <p v-if="teamMembersWithRoles.length === 0" class="text-sm text-center text-gray-400 mt-4">Belum ada anggota.</p>
           </div>
         </div>
         <div>
@@ -87,73 +87,67 @@ const emit = defineEmits(['close', 'teamUpdated']);
 const toast = useToast();
 
 const activeTab = ref('detail');
-const allUsers = ref([]);
-const teamMembers = ref([]);
+const teamMembersWithRoles = ref([]); // Variabel state utama
 const searchQuery = ref('');
 
-// Ambil data detail tim (termasuk anggota) dan semua user saat komponen dimuat
-const fetchData = async () => {
+const fetchData = async () => { 
   try {
-    const [teamDetailsRes, allUsersRes] = await Promise.all([
-      axios.get(`${baseURL}/api/teams/${props.team.id}`),
-      axios.get(`${baseURL}/api/users`, { params: { limit: 1000 } })
-    ]);
-    teamMembers.value = teamDetailsRes.data.users || [];
-    allUsers.value = allUsersRes.data.items || [];
+    const response = await axios.get(`${baseURL}/api/teams/${props.team.id}/details`);
+    // PERBAIKAN DI SINI
+    teamMembersWithRoles.value = response.data.users || [];
   } catch (error) {
     toast.error("Gagal memuat data anggota.");
+    console.error("Error fetching team details:", error);
   }
 };
 
-onMounted(() => {
-  fetchData();
+onMounted(fetchData);
+
+const teamOperators = computed(() => {
+  return teamMembersWithRoles.value.filter(member => member.peran === 'operator');
 });
 
-// Filter daftar user agar hanya menampilkan yang BUKAN anggota tim
+const initialDataForForm = computed(() => {
+    return {
+        ...props.team,
+        operators: teamOperators.value
+    };
+});
+
 const availableUsers = computed(() => {
-  const memberIds = new Set(teamMembers.value.map(m => m.id));
+  const memberIds = new Set(teamMembersWithRoles.value.map(m => m.id));
   const query = searchQuery.value.toLowerCase();
 
-  return allUsers.value
-    // 1. Filter user yang belum menjadi anggota tim
+  return props.userList
     .filter(u => !memberIds.has(u.id))
-    // 2. Filter berdasarkan query pencarian (jika ada)
     .filter(u => u.namaLengkap.toLowerCase().includes(query))
-    // 3. Urutkan hasilnya secara ascending (A-Z)
     .sort((a, b) => a.namaLengkap.localeCompare(b.namaLengkap));
 });
 
 const sortedTeamMembers = computed(() => {
-    return [...teamMembers.value].sort((a, b) => a.namaLengkap.localeCompare(b.namaLengkap));
+    return [...teamMembersWithRoles.value].sort((a, b) => a.namaLengkap.localeCompare(b.namaLengkap));
 });
 
-const closeModal = () => {
-  emit('close');
-};
+const closeModal = () => emit('close');
+const handleUpdate = (formData) => emit('teamUpdated', { ...formData, id: props.team.id });
 
-// Fungsi untuk meneruskan update detail tim ke parent
-const handleUpdate = (formData) => {
-  emit('teamUpdated', { ...formData, id: props.team.id });
-};
-
-// --- LOGIKA UNTUK MENGELOLA ANGGOTA ---
 const addMember = async (user) => {
   try {
     const response = await axios.post(`${baseURL}/api/teams/${props.team.id}/members?user_id=${user.id}`);
-    teamMembers.value = response.data.users || [];
+    teamMembersWithRoles.value = response.data.users || [];
     toast.success(`"${user.namaLengkap}" berhasil ditambahkan.`);
-  } catch (error) {
-    toast.error("Gagal menambahkan anggota.");
+  } catch (error) { 
+    toast.error(error.response?.data?.detail || "Gagal menambahkan anggota.");
   }
 };
 
 const removeMember = async (member) => {
   try {
     const response = await axios.delete(`${baseURL}/api/teams/${props.team.id}/members/${member.id}`);
-    teamMembers.value = response.data.users || [];
+    teamMembersWithRoles.value = response.data.users || [];
     toast.success(`"${member.namaLengkap}" berhasil dikeluarkan.`);
-  } catch (error) {
-    toast.error("Gagal mengeluarkan anggota.");
+  } catch (error) { 
+    toast.error(error.response?.data?.detail || "Gagal mengeluarkan anggota.");
   }
 };
 </script>

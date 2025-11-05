@@ -316,7 +316,7 @@ const fetchInitialData = async () => {
       warna: '#00BFFF' // Warna khusus
     };
     teams.value.unshift(kepalaTim);
-
+    console.log("Daftar Tim : ", teams.value);
     allPegawai.value = usersResponse.data.items.sort((a, b) => a.namaLengkap.localeCompare(b.namaLengkap));
 
     const kepala = allPegawai.value.find(p => p.jabatan?.namaJabatan === "Kepala Kantor");
@@ -330,6 +330,7 @@ const fetchInitialData = async () => {
 };
 
 const fetchAktivitas = async () => {
+  aktivitas.value = [];
   try {
     let endpoint = '';
     let params = {};
@@ -351,7 +352,6 @@ const fetchAktivitas = async () => {
       // Endpoint default jika tidak ada mode atau filter yang dipilih
       endpoint = `${baseURL}/api/kalender/events`;
     }
-    
     const response = await axios.get(endpoint, { params });
     aktivitas.value = response.data;
   } catch (err) {
@@ -361,42 +361,39 @@ const fetchAktivitas = async () => {
 };
 
 const filteredActivities = computed(() => {
-  let data = aktivitas.value;
+  let data = aktivitas.value || [];
 
-  // Cek apakah tim "Kepala" dipilih
-  const isKepalaSelected = selectedTeams.value.some(t => t.id === 'kepala-kantor-filter');
-  
-  if (mode.value === 'team' && isKepalaSelected) {
-    // Jika mode team dan filter 'Kepala Kantor' aktif, kembalikan semua data dari endpoint khusus
+  const isKepalaSelected = selectedTeams.value.some(t => String(t.id) === 'kepala-kantor-filter');
+
+  if (mode.value === 'team' && isKepalaSelected) {
     return data;
   }
-  // Kondisi 1: Mode Tim
-  if (mode.value === 'team') {
-    // Filter aktivitas berdasarkan tim yang dipilih
-    if (selectedTeams.value.length > 0) {
-      const teamIds = new Set(selectedTeams.value.map(t => t.id));
-      data = data.filter(a => a.teamId && teamIds.has(a.teamId));
-    }
-  } 
-  // Kondisi 2: Mode Timeline atau Person
-  else if (mode.value === 'timeline' || mode.value === 'person') {
-    // Ambil semua ID pegawai yang relevan
-    const relevantPegawaiIds = new Set(daftarPegawaiTimeline.value.map(p => p.id));
 
-    if (relevantPegawaiIds.size > 0) {
-      // Filter aktivitas yang melibatkan pegawai tersebut, tanpa melihat timnya
-      data = data.filter(a => a.users?.some(u => relevantPegawaiIds.has(u.id)));
-    } else {
-        // Jika tidak ada pegawai yang relevan, kembalikan array kosong
-        data = [];
-    }
-  }
+  if (mode.value === 'team') {
+    if (selectedTeams.value.length > 0) {
+      const teamIds = new Set(selectedTeams.value.map(t => String(t.id)));
+      data = data.filter(a => {
+        return a.teamId !== undefined && a.teamId !== null && teamIds.has(String(a.teamId));
+      });
+    }
+  } else if (mode.value === 'timeline' || mode.value === 'person') {
+    const relevantPegawaiIds = new Set(daftarPegawaiTimeline.value.map(p => String(p.id)));
+    if (relevantPegawaiIds.size > 0) {
+      data = data.filter(a => (a.users || []).some(u => relevantPegawaiIds.has(String(u.id))));
+    } else {
+      data = [];
+    }
+  }
 
-  return data;
+  return data;
 });
 
-const selectAllTeams = () => { selectedTeams.value = []; };
-const toggleTeam = (team) => {
+const selectAllTeams = async () => { 
+  selectedTeams.value = [];
+  await fetchAktivitas;
+};
+
+const toggleTeam = async (team) => {
   const index = selectedTeams.value.findIndex(t => t.id === team.id);
   
   // Jika 'Kepala Kantor' dipilih, hapus tim lain dan sebaliknya
@@ -406,13 +403,15 @@ const toggleTeam = (team) => {
     selectedTeams.value.splice(index, 1); 
   } else { 
     selectedTeams.value.push(team); 
-    // Hapus 'Kepala Kantor' jika tim lain dipilih
     const kepalaIndex = selectedTeams.value.findIndex(t => t.id === 'kepala-kantor-filter');
     if (kepalaIndex > -1) {
       selectedTeams.value.splice(kepalaIndex, 1);
     }
   }
+
+  await fetchAktivitas();
 };
+
 const isTeamSelected = (team) => { return selectedTeams.value.some(t => t.id === team.id); };
 
 const filteredPegawai = computed(() => {
@@ -597,25 +596,24 @@ onMounted(() => {
   fetchInitialData();
 });
 
+watch(selectedTeams, async () => {
+  await fetchAktivitas();
+}, { deep: true });
+
 watch(mode, () => {
   // Reset filter saat mode berubah
   selectedTeams.value = [];
   selectedPegawaiId.value = null;
 
-  // Jika mode baru adalah 'person', atur pegawai default ke kepala kantor
+  // Jika mode baru adalah 'person', atur selected pegawai ke user
   if (mode.value === 'person') {
-    const kepala = allPegawai.value.find(p => p.jabatan?.namaJabatan === "Kepala Kantor");
-    if (kepala) {
-      selectedPegawaiId.value = kepala.id;
-    } else {
-      selectedPegawaiId.value = allPegawai.value[0]?.id || null;
-    }
+     selectedPegawaiId.value = authStore.user?.id || null;
+      searchQuery.value = authStore.user?.namaLengkap || '';
   }
-
   fetchAktivitas();
 });
 
-watch([selectedTeams, selectedPegawaiId, mode], () => {
+watch([selectedTeams, selectedPegawaiId, mode], async () => {
   fetchAktivitas();
 });
 

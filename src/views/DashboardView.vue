@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+  <div class="container mx-auto p-4">
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-green-500" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

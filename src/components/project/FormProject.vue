@@ -75,6 +75,7 @@ import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 const authStore = useAuthStore();
 const toast = useToast();
 
@@ -89,10 +90,30 @@ const props = defineProps({
   
 const daftarTim = computed(() => {
   if (!props.teamList) return [];
-  if (!authStore.user?.ketuaTimAktif) return [];
-  return props.teamList.filter(tim => 
-    authStore.user.ketuaTimAktif.some(k => k.id === tim.id)
-  );
+
+  const manageableTeams = new Map();
+
+  if (authStore.user.ketuaTimAktif) {
+    authStore.user.ketuaTimAktif.forEach(team => {
+      manageableTeams.set(team.id, team);
+    });
+  }
+  if (authStore.user.teams) {
+    const operatorTeams = authStore.user.teams
+      .filter(teamRole => teamRole.peran === 'operator')
+      // Map ke format yang sesuai dengan teamList jika perlu
+      .map(operatorTeamInfo => {
+          // Cari detail tim lengkap dari teamList prop
+          return props.teamList.find(t => t.id === operatorTeamInfo.id);
+      })
+      .filter(Boolean); // Hapus hasil find yang undefined
+
+    operatorTeams.forEach(team => {
+      manageableTeams.set(team.id, team);
+    });
+  }
+
+  return Array.from(manageableTeams.values()).sort((a, b) => a.namaTim.localeCompare(b.namaTim));
 });
 
 const emit = defineEmits(['close', 'submit']);
