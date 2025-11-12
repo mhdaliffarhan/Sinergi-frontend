@@ -372,7 +372,6 @@ const handleActivitySubmit = async (formData) => {
       payload[field] = null;
     }
   });
-  console.log("Data : ", payload);
   try {
     await axios.post(`${baseURL}/api/aktivitas`, payload);
     toast.success("Aktivitas berhasil dibuat!");

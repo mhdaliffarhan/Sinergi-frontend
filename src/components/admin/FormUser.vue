@@ -23,6 +23,38 @@
           class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
         />
       </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="nip" class="block text-sm font-medium text-gray-700 dark:text-gray-300">NIP</label>
+          <input 
+            type="text" 
+            id="nip" 
+            v-model="form.nip"
+            maxlength="18"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        <div>
+          <label for="nipbps" class="block text-sm font-medium text-gray-700 dark:text-gray-300">NIP BPS (9 digit)</label>
+          <input 
+            type="text" 
+            id="nipbps" 
+            v-model="form.nipbps"
+            maxlength="9"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+      </div>
+      <div>
+        <label for="nohp" class="block text-sm font-medium text-gray-700 dark:text-gray-300">No. HP (WhatsApp)</label>
+        <input 
+          type="text" 
+          id="nohp" 
+          v-model="form.nohp"
+          placeholder="Contoh: 628123456789"
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+        />
+      </div>
       <div v-if="!isEditMode">
         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
         <input 
@@ -86,7 +118,10 @@ const form = reactive({
   namaLengkap: '',
   password: '',
   sistemRoleId: '',
-  jabatanId: ''
+  jabatanId: '',
+  nip: '',
+  nipbps: '',
+  nohp: ''
 });
 
 watchEffect(() => {
@@ -96,6 +131,18 @@ watchEffect(() => {
     form.sistemRoleId = props.initialData.sistemRole?.id || '';
     form.jabatanId = props.initialData.jabatan?.id || '';
     form.password = ''; 
+    form.nip = props.initialData.nip || '';
+    form.nipbps = props.initialData.nipbps || '';
+    form.nohp = props.initialData.nohp || '';
+  } else {
+    form.username = '';
+    form.namaLengkap = '';
+    form.password = '';
+    form.sistemRoleId = '';
+    form.jabatanId = '';
+    form.nip = '';
+    form.nipbps = '';
+    form.nohp = '';
   }
 });
 

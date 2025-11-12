@@ -29,7 +29,7 @@
           <tr>
             <th scope="col" class="px-6 py-3">Nama Lengkap</th>
             <th scope="col" class="px-6 py-3">Username</th>
-            <th scope="col" class="px-6 py-3">Jabatan</th>
+            <th scope="col" class="px-6 py-3">No HP</th>
             <th scope="col" class="px-6 py-3">Peran Sistem</th>
             <th scope="col" class="px-6 py-3">Status</th>
             <th scope="col" class="px-6 py-3"><span class="sr-only">Aksi</span></th>
@@ -39,7 +39,7 @@
           <tr v-for="user in users" :key="user.id" class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ user.namaLengkap }}</th>
             <td class="px-6 py-4">{{ user.username }}</td>
-            <td class="px-6 py-4">{{ user.jabatan?.namaJabatan || '-' }}</td>
+            <td class="px-6 py-4">{{ user.nohp || '-' }}</td>
             <td class="px-6 py-4">
               <span v-if="user.sistemRole" class="px-2 py-1 text-xs font-semibold rounded-full" :class="getRoleClass(user.sistemRole.namaRole)">
                 {{ user.sistemRole.namaRole }}
@@ -193,19 +193,14 @@ const confirmDeleteUser = (user) => {
 };
 
 const handleUserSubmit = async (formData) => {
-  const payload = {
-    username: formData.username,
-    namaLengkap: formData.namaLengkap,
-    sistemRoleId: formData.sistemRoleId,
-    jabatanId: formData.jabatanId,
-  };
-  if (!isEditMode.value) {
-    payload.password = formData.password;
+  const payload = { ...formData};
+
+  if (isEditMode.value) {
+    delete payload.password;
   }
 
   try {
     if (isEditMode.value) {
-      console.log('Data :', payload);
       await axios.put(`${baseURL}/api/users/${userToEdit.value.id}`, payload);
       toast.success(`Pengguna "${payload.username}" berhasil diperbarui.`);
     } else {
@@ -216,7 +211,11 @@ const handleUserSubmit = async (formData) => {
     await fetchData();
   } catch (error) {
     const errorMsg = error.response?.data?.detail || "Terjadi kesalahan.";
-    toast.error(errorMsg);
+    if (Array.isArray(error.response?.data?.detail) && error.response.data.detail[0].msg === "Field required") {
+      toast.error(`Gagal: Field ${error.response.data.detail[0].loc[1]} wajib diisi.`);
+    } else {
+      toast.error(errorMsg);
+    }
   }
 };
 

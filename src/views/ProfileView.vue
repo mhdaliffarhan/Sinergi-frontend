@@ -24,57 +24,108 @@
         <div
           class="bg-white dark:bg-gray-800 shadow-md hover:shadow-xl rounded-2xl p-6 sm:p-8 transition-all duration-300 border border-gray-100 dark:border-gray-700"
         >
-          <h2
-            class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-5 flex items-center gap-2"
-          >
-            <span class="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
-            Informasi Akun
-          </h2>
+          <div class="flex items-center justify-between mb-5">
+            <h2
+              class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2"
+            >
+              <span class="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+              Informasi Akun
+            </h2>
+            <button
+              @click="toggleEditMode"
+              class="px-3 py-1 text-xs font-medium rounded-md"
+              :class="isEditMode 
+                ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300' 
+                : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200'"
+            >
+              {{ isEditMode ? 'Batal' : '✏️ Edit' }}
+            </button>
+          </div>
 
-          <div class="space-y-4 divide-y divide-gray-200 dark:divide-gray-700">
-            <div class="py-2">
+          <div v-if="!isEditMode" class="space-y-4 divide-y divide-gray-200 dark:divide-gray-700">
+            <div class="pt-4 first:pt-0">
               <p class="text-gray-600 dark:text-gray-400 text-sm">Username</p>
-              <p
-                class="font-medium text-gray-900 dark:text-gray-100 break-words"
-              >
+              <p class="font-medium text-gray-900 dark:text-gray-100 break-words">
                 {{ authStore.user?.username }}
               </p>
             </div>
 
-            <div class="py-2">
-              <p class="text-gray-600 dark:text-gray-400 text-sm">
-                Nama Lengkap
-              </p>
-              <p
-                class="font-medium text-gray-900 dark:text-gray-100 break-words"
-              >
+            <div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm">Nama Lengkap</p>
+              <p class="font-medium text-gray-900 dark:text-gray-100 break-words">
                 {{ authStore.user?.namaLengkap }}
               </p>
             </div>
 
-            <div
-              v-if="user.role_sistem === 'admin' || user.role_sistem === 'superadmin'"
-              class="py-2"
-            >
+            <div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm">NIP</p>
+              <p class="font-medium text-gray-900 dark:text-gray-100 break-words">
+                {{ authStore.user?.nip || '-' }}
+              </p>
+            </div>
+
+            <div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm">NIP BPS</p>
+              <p class="font-medium text-gray-900 dark:text-gray-100 break-words">
+                {{ authStore.user?.nipbps || '-' }}
+              </p>
+            </div>
+
+            <div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm">No. HP (WA)</p>
+              <p class="font-medium text-gray-900 dark:text-gray-100 break-words">
+                {{ authStore.user?.nohp || '-' }}
+              </p>
+            </div>
+
+            <div v-if="authStore.user?.sistemRole?.namaRole">
               <p class="text-gray-600 dark:text-gray-400 text-sm">Role Sistem</p>
               <p class="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                {{ user.role_sistem }}
+                {{ authStore.user.sistemRole.namaRole }}
               </p>
             </div>
 
             <div
-              v-for="(tim, index) in user.tim_aktif"
+              v-for="(tim, index) in authStore.user?.teams"
               :key="index"
-              class="py-2"
             >
               <p class="text-gray-600 dark:text-gray-400 text-sm">
                 Tim {{ index + 1 }}
               </p>
               <p class="font-medium text-gray-900 dark:text-gray-100">
-                {{ tim.nama }} ({{ tim.jabatan }})
+                {{ tim.namaTim }} ({{ tim.peran }})
               </p>
             </div>
+
           </div>
+
+          <form v-else @submit.prevent="handleProfileUpdate" class="space-y-5">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Lengkap</label>
+              <input
+                v-model="profileForm.namaLengkap"
+                type="text"
+                required
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm ... dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">No. HP (WhatsApp)</label>
+              <input
+                v-model="profileForm.nohp"
+                type="text"
+                placeholder="Gunakan format 62..."
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm ... dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full inline-flex justify-center py-3 px-6 text-sm font-semibold rounded-xl shadow-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              Simpan Perubahan
+            </button>
+          </form>
+
         </div>
 
         <!-- Card 2: Ganti Password -->
@@ -147,7 +198,7 @@
 
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import axios from "axios";
 import ProfilePicture from "@/components/profile/ProfilePicture.vue";
 import { useAuthStore } from '@/stores/auth';
@@ -156,14 +207,6 @@ import { useToast } from 'vue-toastification';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
 const toast = useToast();
-const user = ref({
-  id: null,
-  username: "",
-  namaLengkap: "",
-  roleSistem: "",
-  foto_profil_url: "",
-  tim_aktif: []
-});
 
 const form = ref({
   oldPassword: "",
@@ -171,6 +214,43 @@ const form = ref({
   confirmPassword: ""
 });
 
+
+const isEditMode = ref(false);
+const profileForm = ref({
+  namaLengkap: authStore.user?.namaLengkap || '',
+  nohp: authStore.user?.nohp || ''
+});
+
+watch(() => authStore.user, (newUser) => {
+  if (newUser && !isEditMode.value) {
+    profileForm.value.namaLengkap = newUser.namaLengkap || '';
+    profileForm.value.nohp = newUser.nohp || '';
+  }
+}, { immediate: true });
+
+const toggleEditMode = () => {
+  if (isEditMode.value) {
+    // Jika Batal, kembalikan data form ke data asli dari store
+    profileForm.value.namaLengkap = authStore.user?.namaLengkap || '';
+    profileForm.value.nohp = authStore.user?.nohp || '';
+  }
+  isEditMode.value = !isEditMode.value;
+};
+
+const handleProfileUpdate = async () => {
+  try {
+    // Kita akan membuat endpoint '/api/users/me/profile' di backend
+    await axios.put(`${baseURL}/api/users/me/profile`, profileForm.value);
+    
+    // Ambil data user terbaru
+    await authStore.fetchUser(); 
+    
+    toast.success("Profil berhasil diperbarui!");
+    isEditMode.value = false;
+  } catch (err) {
+    toast.error(err?.response?.data?.detail || "Gagal memperbarui profil.");
+  }
+};
 
 const updatePassword = async () => {
   if (form.value.newPassword !== form.value.confirmPassword) {

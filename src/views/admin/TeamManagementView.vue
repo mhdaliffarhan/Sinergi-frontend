@@ -181,7 +181,6 @@ const closeModal = () => {
 
 const handleTeamCreate = async (formData) => {
   try {
-    console.log("form team : ", formData);
     await axios.post(`${baseURL}/api/teams`, formData);
     toast.success(`Tim "${formData.namaTim}" berhasil dibuat.`);
     
@@ -195,7 +194,6 @@ const handleTeamCreate = async (formData) => {
 
 const handleTeamUpdate = async (formData) => {
     try {
-      console.log('Data : ', formData);
         await axios.put(`${baseURL}/api/teams/${formData.id}`, formData);
         toast.success(`Tim "${formData.namaTim}" berhasil diperbarui.`);
         closeModal();
