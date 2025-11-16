@@ -22,6 +22,16 @@ const router = createRouter({
       component: LoginView
     },
     {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('../views/ForgotPasswordView.vue')
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('../views/ResetPasswordView.vue')
+    },
+    {
       path: '/public/aktivitas/:public_id',
       name: 'public-aktivitas-detail',
       component: () => import('../views/PublicAktivitasView.vue')
@@ -128,24 +138,42 @@ router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   const toast = useToast();
 
-  if (authStore.token && !authStore.user) {
-    await authStore.fetchUser();
-  }
-
+  // 'restoreSession' sudah berjalan di main.js, jadi kita tidak perlu
+  // memanggil 'fetchUser' di sini. Kita cukup cek hasilnya.
+  
   const isAuthenticated = authStore.isAuthenticated;
   const userRole = authStore.user?.sistemRole?.namaRole;
 
+  // 1. Cek Rute yang Butuh Login
+  // Jika rute butuh auth TAPI user TIDAK terautentikasi
   if (to.meta.requiresAuth && !isAuthenticated) {
     return next({ name: 'login' });
   }
 
+  // 2. Cek jika user login tapi ke halaman Login
+  if (to.name === 'login' && isAuthenticated) {
+    return next({ name: 'dashboard' });
+  }
+
+  // 3. (POIN 1 ANDA) Cek Paksa Isi Profil (HANYA jika sudah login)
+  if (isAuthenticated && !authStore.user?.nohp) {
+    // Jika No. HP kosong
+    if (to.name !== 'profil' && to.name !== 'login') {
+      // Dan user mencoba pergi ke halaman SELAIN profil
+      // (Kita hapus toast di sini agar tidak spam)
+      return next({ name: 'profil' }); // Paksa ke /profil
+    }
+  }
+
+  // 4. Cek Role (HANYA jika sudah login)
   if (to.meta.requiredRoles && isAuthenticated) {
-    if (!to.meta.requiredRoles.includes(userRole)) {
+    if (!userRole || !to.meta.requiredRoles.includes(userRole)) {
       toast.error("Anda tidak memiliki hak akses ke halaman ini.");
       return next({ name: 'dashboard' });
     }
   }
 
+  // 5. Jika lolos semua
   next();
 });
 

@@ -3,6 +3,7 @@
     class="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
   >
     <div class="max-w-6xl mx-auto space-y-10">
+      
       <!-- Header -->
       <div class="flex flex-col items-center text-center space-y-4">
         <ProfilePicture :user="authStore" />
@@ -12,10 +13,19 @@
           >
             Profil Saya
           </h1>
-          <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base mt-1">
-            Kelola informasi akun dan keamanan Anda
-          </p>
         </div>
+        <Transition name="fade-bounce">
+          <div 
+            v-if="!authStore.user?.nohp" 
+            class="bg-red-50 dark:bg-red-900/40 border-l-4 border-red-400 text-red-800 dark:text-red-200 p-4 rounded-lg shadow-md" 
+            role="alert"
+          >
+            <p class="font-bold">Harap Lengkapi Profil Anda</p>
+            <p class="text-sm">
+              Anda harus mengisi No. HP (WhatsApp) untuk dapat menggunakan fitur notifikasi dan mengakses menu lainnya. Silakan klik "✏️ Edit" pada kartu "Informasi Akun" di bawah.
+            </p>
+          </div>
+        </Transition>
       </div>
 
       <!-- Konten utama: Informasi Akun & Ganti Password -->
@@ -106,8 +116,11 @@
                 v-model="profileForm.namaLengkap"
                 type="text"
                 required
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm ... dark:bg-gray-700 dark:text-white"
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
               />
+              <p v-if="formErrors.namaLengkap" class="text-xs text-red-500 mt-1">
+                {{ formErrors.namaLengkap }}
+              </p>
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">No. HP (WhatsApp)</label>
@@ -115,8 +128,11 @@
                 v-model="profileForm.nohp"
                 type="text"
                 placeholder="Gunakan format 62..."
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm ... dark:bg-gray-700 dark:text-white"
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
               />
+              <p v-if="formErrors.nohp" class="text-xs text-red-500 mt-1">
+                {{ formErrors.nohp }}
+              </p>
             </div>
             <button
               type="submit"
@@ -220,6 +236,7 @@ const profileForm = ref({
   namaLengkap: authStore.user?.namaLengkap || '',
   nohp: authStore.user?.nohp || ''
 });
+const formErrors = ref({});
 
 watch(() => authStore.user, (newUser) => {
   if (newUser && !isEditMode.value) {
@@ -237,18 +254,67 @@ const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value;
 };
 
+const validateProfileForm = () => {
+  formErrors.value = {}; // Reset errors
+  const { namaLengkap, nohp } = profileForm.value;
+  let isValid = true;
+
+  if (!namaLengkap || namaLengkap.trim() === "") {
+    formErrors.value.namaLengkap = "Nama lengkap tidak boleh kosong.";
+    isValid = false;
+  }
+
+  // Validasi No. HP
+  if (nohp && nohp.trim() !== "") {
+    const nohpNumeric = nohp.replace(/\D/g, ''); // Hapus semua non-digit
+    
+    if (!nohpNumeric.startsWith('62')) {
+      formErrors.value.nohp = 'No. HP harus diawali dengan 62 (misal: 62812...).';
+      isValid = false;
+    } else if (nohpNumeric.length < 12 || nohpNumeric.length > 14) {
+      // 62 + 10-12 digit = 12-14 total
+      formErrors.value.nohp = 'No. HP harus 12 hingga 14 digit.';
+      isValid = false;
+    }
+  }
+  
+  return isValid;
+};
+
 const handleProfileUpdate = async () => {
+  // Jalankan validasi frontend dulu
+  if (!validateProfileForm()) {
+    toast.error("Form tidak valid. Silakan periksa kembali isian Anda.");
+    return;
+  }
+
   try {
-    // Kita akan membuat endpoint '/api/users/me/profile' di backend
-    await axios.put(`${baseURL}/api/users/me/profile`, profileForm.value);
+    // Siapkan payload (kita juga bersihkan nohp di sini)
+    const payload = {
+      nama_lengkap: profileForm.value.namaLengkap,
+      nohp: profileForm.value.nohp ? profileForm.value.nohp.replace(/\D/g, '') : null
+    };
+
+    await axios.put(`${baseURL}/api/users/me/profile`, payload);
     
-    // Ambil data user terbaru
     await authStore.fetchUser(); 
-    
     toast.success("Profil berhasil diperbarui!");
     isEditMode.value = false;
+    formErrors.value = {}; // Bersihkan error
+
   } catch (err) {
-    toast.error(err?.response?.data?.detail || "Gagal memperbarui profil.");
+    if (err.response?.status === 422) {
+      // Tangkap error validasi dari Pydantic (Backend)
+      err.response.data.detail.forEach(e => {
+        const fieldName = e.loc[e.loc.length - 1]; // Ambil nama field
+        if (formErrors.value.hasOwnProperty(fieldName)) {
+          formErrors.value[fieldName] = e.msg; // Tampilkan pesan error dari backend
+        }
+      });
+      toast.error("Data tidak valid, periksa pesan error di form.");
+    } else {
+      toast.error(err?.response?.data?.detail || "Gagal memperbarui profil.");
+    }
   }
 };
 
@@ -280,3 +346,28 @@ const updatePassword = async () => {
 };
 
 </script>
+
+<style scoped>
+.fade-bounce-enter-active {
+  animation: bounce-in 0.5s ease;
+}
+.fade-bounce-leave-active {
+  animation: bounce-in 0.3s ease reverse;
+  opacity: 0;
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  80% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+</style>

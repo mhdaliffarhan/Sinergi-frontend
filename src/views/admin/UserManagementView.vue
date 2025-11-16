@@ -193,7 +193,8 @@ const confirmDeleteUser = (user) => {
 };
 
 const handleUserSubmit = async (formData) => {
-  const payload = { ...formData};
+  
+  const payload = { ...formData };
 
   if (isEditMode.value) {
     delete payload.password;
@@ -208,14 +209,27 @@ const handleUserSubmit = async (formData) => {
       toast.success(`Pengguna "${payload.username}" berhasil dibuat.`);
     }
     closeModal();
-    await fetchData();
+    await fetchData(); 
   } catch (error) {
-    const errorMsg = error.response?.data?.detail || "Terjadi kesalahan.";
-    if (Array.isArray(error.response?.data?.detail) && error.response.data.detail[0].msg === "Field required") {
-      toast.error(`Gagal: Field ${error.response.data.detail[0].loc[1]} wajib diisi.`);
+    // --- BLOK CATCH YANG DISEMPURNAKAN ---
+    if (error.response && error.response.status === 422) {
+      // Ini adalah error validasi dari FastAPI
+      const validationErrors = error.response.data.detail;
+      if (Array.isArray(validationErrors)) {
+        // Ambil pesan error validasi pertama yang jelas
+        const firstError = validationErrors[0];
+        const fieldName = firstError.loc[firstError.loc.length - 1];
+        const errorMsg = firstError.msg;
+        toast.error(`Validasi Gagal: ${fieldName} - ${errorMsg}`);
+      } else {
+        toast.error("Terjadi error validasi (422).");
+      }
     } else {
+      // Error umum lainnya
+      const errorMsg = error.response?.data?.detail || "Terjadi kesalahan.";
       toast.error(errorMsg);
     }
+    // --- AKHIR BLOK CATCH ---
   }
 };
 

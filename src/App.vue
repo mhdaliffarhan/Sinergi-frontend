@@ -39,7 +39,7 @@ const uiStore = useUIStore();
 // Buat sebuah computed property yang akan bernilai 'true' atau 'false'
 // berdasarkan nama rute saat ini.
 const showMainLayout = computed(() => {
-  const layoutLessRoutes = ['login', 'landing', 'public-aktivitas-detail', 'not-found'];
+  const layoutLessRoutes = ['login', 'landing', 'public-aktivitas-detail', 'not-found', 'forgot-password', 'reset-password'];
 
   return !layoutLessRoutes.includes(route.name);
 });

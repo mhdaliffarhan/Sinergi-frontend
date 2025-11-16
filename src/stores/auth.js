@@ -9,10 +9,10 @@ const toast = useToast();
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('token'));
+  const accessToken = ref(null);
   const user = ref(null);
 
-  const isAuthenticated = computed(() => !!token.value);
+  const isAuthenticated = computed(() => !!accessToken.value);
   const userRole = computed(() => user.value?.sistemRole?.namaRole);
 
   const isAdmin = computed(() => {
@@ -32,64 +32,138 @@ export const useAuthStore = defineStore('auth', () => {
     return false;
   });
 
-  function setToken(newToken) {
-    localStorage.setItem('token', newToken);
-    token.value = newToken;
-    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+  // --- ACTIONS ---
+
+  /**
+   * Helper internal untuk mengatur state setelah login atau refresh
+   */
+function setAuthData(newAccessToken, userData) {
+    accessToken.value = newAccessToken;
+    user.value = userData;
+    axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
   }
 
-  function removeToken() {
-    localStorage.removeItem('token');
-    token.value = null;
+
+  /**
+   * Helper internal untuk membersihkan state saat logout
+   */
+function clearAuthData() {
+    accessToken.value = null;
     user.value = null;
-    // HAPUS TOKEN DARI SEMUA REQUEST AXIOS
+    // Hapus refresh token dari KEDUA storage
+    localStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('refreshToken');
     delete axios.defaults.headers.common['Authorization'];
   }
-
-  // Jika token sudah ada saat halaman di-refresh, langsung atur header-nya
-  if (token.value) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
-  }
-
-  async function login(username, password) {
+/**
+   * [1] Dipanggil oleh LoginView.vue
+   */
+  async function login(username, password, rememberMe) {
     try {
       const params = new URLSearchParams();
       params.append('username', username);
       params.append('password', password);
+
       const response = await axios.post(`${baseURL}/token`, params);
 
-      setToken(response.data.accessToken);
+      const newAccessToken = response.data.accessToken; 
+      const newRefreshToken = response.data.refreshToken;
 
-      await fetchUser();
-      await router.push('/dashboard');
+      // Simpan refresh token di storage
+      if (rememberMe) {
+        localStorage.setItem('refreshToken', newRefreshToken);
+        sessionStorage.removeItem('refreshToken');
+      } else {
+        sessionStorage.setItem('refreshToken', newRefreshToken);
+        localStorage.removeItem('refreshToken');
+      }
+
+      // Ambil data user
+      // Kita set token sementara untuk request fetchUser
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+      const userResponse = await axios.get(`${baseURL}/users/me`);
+
+      // Set state aplikasi
+      setAuthData(newAccessToken, userResponse.data);
+      
+      // Logika Paksa Isi Profil
+      if (user.value && !user.value.nohp) {
+        toast.info("Harap lengkapi Nomor HP Anda untuk Notifikasi WA.");
+        router.push('/profil');
+      } else {
+        router.push('/dashboard');
+      }
+      
       return true;
     } catch (error) {
-      removeToken();
+      throw new Error(error.response?.data?.detail || 'Username atau password salah.');
+    }
+  }
+/**
+   * [2] Dipanggil oleh router guard dan app load
+   */
+  async function fetchUser() {
+    if (!accessToken.value) return;
+    try {
+      const response = await axios.get(`${baseURL}/users/me`);
+      user.value = response.data;
+    } catch (error) {
+      logout();
+    }
+  }
+
+  /**
+   * [3] Dipanggil oleh Axios Interceptor (Langkah 4)
+   */
+  async function restoreSession() {
+    const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+    
+    if (!refreshToken) {
+      return false; // Tidak ada sesi untuk dipulihkan
+    }
+
+    try {
+      // Panggil endpoint /refresh dengan refresh token
+      const response = await axios.post(
+        `${baseURL}/api/auth/refresh`, 
+        {}, // Body kosong
+        { headers: { 'Authorization': `Bearer ${refreshToken}` } }
+      );
+
+      const newAccessToken = response.data.accessToken;
+      if (!newAccessToken) {
+        throw new Error("Refresh token tidak valid");
+      }
+      
+      // Ambil data user dengan token baru
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+      const userResponse = await axios.get(`${baseURL}/users/me`);
+      
+      // Set state aplikasi
+      setAuthData(newAccessToken, userResponse.data);
+      return true;
+
+    } catch (error) {
+      // Jika refresh token gagal (kedaluwarsa/dicabut), logout
+      clearAuthData();
+      router.push('/login');
+      toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
       return false;
     }
   }
 
-  async function fetchUser() {
-    if (!token.value) return;
-    try {
-      // Tidak perlu lagi menambahkan header secara manual di sini
-      const response = await axios.get(`${baseURL}/users/me`);
-      user.value = response.data;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        logout();
-      }
-    }
-  }
-
+  /**
+   * [4] Dipanggil oleh tombol Logout
+   */
   function logout() {
-    removeToken();
+    clearAuthData();
     router.push('/login');
     toast.success('Anda berhasil Logout!');
   }
 
   return {
-    token,
+    accessToken,
     user,
     isAuthenticated,
     userRole,
@@ -98,6 +172,8 @@ export const useAuthStore = defineStore('auth', () => {
     isOperator,
     login,
     fetchUser,
-    logout
+    restoreSession,
+    logout,
+    setAuthData
   };
 });

@@ -186,7 +186,7 @@ import { id } from 'date-fns/locale';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const uiStore = useUIStore();
 const authStore = useAuthStore();
-const router = useRouter(); // Inisialisasi router
+const router = useRouter();
 
 const unreadCount = ref(0);
 const notifications = ref([]);
