@@ -85,9 +85,9 @@ const menuItems = computed(() => {
     { label: 'Dashboard', to: '/dashboard', icon: '📊' },
     { label: 'Kalender', to: '/kalender', icon: '📅' },
     { label: 'Tim', to: '/team', icon: '👥'},
-    { label: 'Project', to: '/project', icon: '💼'},
+    { label: 'Project', to: '/project', icon: '🚀'},
     { 
-      label: 'Aktivitas', to: '/aktivitas/daftar', icon: '✅'
+      label: 'Aktivitas', to: '/aktivitas/daftar', icon: '🗂️'
     },
     { label: 'Feedback', external:true, href: "https://docs.google.com/forms/d/e/1FAIpQLSd__LfvPoMKVeGiaFS_SMhYFr5DF_g-gaI7fvJGCgzdyj8svQ/viewform?usp=header", icon: '⭐'}
   ];

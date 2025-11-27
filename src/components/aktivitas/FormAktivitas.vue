@@ -1,242 +1,368 @@
 <template>
-  <form @submit.prevent="handleSubmit">
+  <form @submit.prevent="handleSubmit" class="space-y-6 text-gray-800 dark:text-gray-200">
+    
     <div class="space-y-4">
-      
-      <div>
-        <a href="">{{ project }}</a>
-        <label for="nama-aktivitas" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Aktivitas</label>
+      <div class="relative">
+        <label for="nama-aktivitas" class="block text-sm font-medium mb-1 transition-colors" :class="errors.namaAktivitas ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
+          Nama Aktivitas <span class="text-red-500">*</span>
+        </label>
         <input 
           type="text" 
           id="nama-aktivitas" 
           v-model="form.namaAktivitas"
-          :class="{ 'border-red-500': errors.namaAktivitas }"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+          class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+          :class="errors.namaAktivitas ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-600'"
           placeholder="Contoh: Rapat Evaluasi Bulanan"
         />
-        <p v-if="errors.namaAktivitas" class="mt-1 text-xs text-red-500">{{ errors.namaAktivitas }}</p>
+        <transition name="slide-fade">
+          <p v-if="errors.namaAktivitas" class="mt-1 text-xs text-red-500 flex items-center">
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+            {{ errors.namaAktivitas }}
+          </p>
+        </transition>
       </div>
-  
+
       <div>
-        <label for="deskripsi" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Deskripsi</label>
+        <label for="deskripsi" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deskripsi</label>
         <textarea 
           id="deskripsi" 
           v-model="form.deskripsi"
           rows="3"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-          placeholder="Jelaskan tujuan singkat dari aktivitas ini."
+          class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+          placeholder="Jelaskan tujuan singkat dari aktivitas ini..."
         ></textarea>
       </div>
+    </div>
 
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600">
       <div>
-        <label for="tim" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tim</label>
-        <select 
-          id="tim" 
-          v-model="form.teamId"
-          :class="{ 'border-red-500': errors.teamId }"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-        >
-          <option disabled value="">Pilih tim</option>
-          <option 
-            v-for="tim in daftarTim" 
-            :key="tim.id" 
-            :value="tim.id"
+        <label for="tim" class="block text-sm font-medium mb-1 transition-colors" :class="errors.teamId ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
+          Tim Penyelenggara <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <select 
+            id="tim" 
+            v-model="form.teamId"
+            class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm appearance-none transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer"
+            :class="errors.teamId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'"
           >
-            {{ tim.namaTim }}
-          </option>
-        </select>
-        <p v-if="errors.teamId" class="mt-1 text-xs text-red-500">{{ errors.teamId }}</p>
-      </div>
-      <div v-if="form.teamId">
-        <label for="project" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project</label>
-        <select
-          id="project"
-          v-model="form.projectId"
-          :class="{ 'border-red-500': errors.projectId }"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-        >
-          <option disabled value="">Pilih project</option>
-          <option
-            v-for="project in filteredProjects"
-            :key="project.id"
-            :value="project.id"
-          >
-            {{ project.namaProject }}
-          </option>
-        </select>
-        <p v-if="errors.projectId" class="mt-1 text-xs text-red-500">{{ errors.projectId }}</p>
-      </div>
-
-<div>
-      <label for="anggota" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Pegawai yang Terlibat
-      </label>
-      <div class="relative mt-1">
-        <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="toggleDropdown">
-          <div v-if="selectedMembers.length === 0" class="text-gray-400">Pilih pegawai yang terlibat...</div>
-            <div v-else class="flex flex-wrap gap-2">
-              <span v-for="member in selectedMembers" :key="member.id" class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-800 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
-                {{ member.namaLengkap }}
-                <button type="button" @click.stop="removeMember(member.id)" class="ml-1 -mr-0.5 h-4 w-4 text-blue-500 hover:text-blue-700">
-                  <svg class="h-full w-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-              </span>
-            </div>
-        </div>
-
-        <div v-if="isDropdownOpen" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
-          <button
-            type="button"
-            @click.stop="isDropdownOpen = false"
-            class="absolute top-1 right-1 z-20 p-3 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none"
-            title="Tutup"
-          >
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          </button>
-
-          <input type="text" v-model="searchQuery" placeholder="Cari anggota..." class="sticky top-0 w-full px-4 py-2 bg-gray-50 border-b border-gray-300 dark:border-gray-600 focus:outline-none text-sm sm:text-sm dark:bg-gray-700 dark:text-white" @click.stop/>
-
-          <div
-            class="px-4 py-2 cursor-pointer sticky top-10 bg-gray-100 dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 font-semibold hover:bg-gray-200 dark:hover:bg-gray-700"
-            @click.stop="toggleSelectAllMembers"
-          >
-            {{ selectAllText }}
+            <option disabled value="">-- Pilih Tim --</option>
+            <option v-for="tim in daftarTim" :key="tim.id" :value="tim.id">
+              {{ tim.namaTim }}
+            </option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </div>
+        </div>
+        <transition name="slide-fade">
+          <p v-if="errors.teamId" class="mt-1 text-xs text-red-500">{{ errors.teamId }}</p>
+        </transition>
+      </div>
 
-          <ul class="py-1 pt-0"> <li v-for="user in filteredMembers" :key="user.id" @click="selectMember(user)" class="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm dark:bg-gray-700 dark:text-white">
-              <span :class="{'font-bold': isSelected(user.id)}">{{ user.namaLengkap }}</span>
-            </li>
-          </ul>
-          <p v-if="filteredMembers.length === 0" class="text-center text-gray-400 py-4 text-sm">Tidak ada anggota ditemukan.</p>
+      <transition name="slide-up" mode="out-in">
+        <div v-if="form.teamId">
+          <label for="project" class="block text-sm font-medium mb-1 transition-colors" :class="errors.projectId ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
+            Proyek <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="project"
+              v-model="form.projectId"
+              class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm appearance-none transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer"
+              :class="errors.projectId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'"
+            >
+              <option disabled value="">-- Pilih Proyek --</option>
+              <option v-for="project in filteredProjects" :key="project.id" :value="project.id">
+                {{ project.namaProject }}
+              </option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+          <transition name="slide-fade">
+            <p v-if="errors.projectId" class="mt-1 text-xs text-red-500">{{ errors.projectId }}</p>
+          </transition>
+        </div>
+        <div v-else class="flex items-center justify-center h-full text-sm text-gray-400 italic border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+          Pilih Tim terlebih dahulu
+        </div>
+      </transition>
+    </div>
+
+    <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
+
+    <div class="space-y-3">
+      <div class="flex justify-between items-center">
+        <label class="block text-sm font-bold text-gray-800 dark:text-gray-200">
+          🤝 Kolaborasi Lintas Tim (Opsional)
+        </label>
+        <span class="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+          {{ form.idTimTerkait.length }} Tim Dipilih
+        </span>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar p-1">
+        <div v-for="tm in teamList" :key="tm.id">
+          <template v-if="tm.id !== form.teamId">
+            <label 
+              :for="`team-terkait-${tm.id}`"
+              class="flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 group hover:shadow-sm"
+              :class="form.idTimTerkait.includes(tm.id) 
+                ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500' 
+                : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 hover:border-blue-300'"
+            >
+              <input 
+                type="checkbox" 
+                :id="`team-terkait-${tm.id}`"
+                :value="tm.id" 
+                v-model="form.idTimTerkait" 
+                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+              >
+              <span class="ml-3 text-sm font-medium" :class="form.idTimTerkait.includes(tm.id) ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'">
+                {{ tm.namaTim }}
+              </span>
+            </label>
+          </template>
         </div>
       </div>
     </div>
 
+    <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
 
-      <!-- Daftar pegawai yang muncul hanya dari tim yang dipilih -->
-      <!-- <div v-if="form.teamId">
-        <label for="anggota" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Pegawai yang Terlibat
-        </label>
-        <div class="relative mt-1">
-          <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="toggleDropdown">
-            <div v-if="selectedMembers.length === 0" class="text-gray-400">Pilih pegawai yang terlibat...</div>
-            <div v-else class="flex flex-wrap gap-2">
-              <span v-for="member in selectedMembers" :key="member.id" class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-800 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
-                {{ member.namaLengkap }}
-                <button type="button" @click.stop="removeMember(member.id)" class="ml-1 -mr-0.5 h-4 w-4 text-blue-500 hover:text-blue-700">
-                  <svg class="h-full w-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-              </span>
-            </div>
-          </div>
-          
-          <div v-if="isDropdownOpen" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
-            <input type="text" v-model="searchQuery" placeholder="Cari anggota..." class="sticky top-0 w-full px-4 py-2 bg-gray-50 border-b border-gray-300 dark:border-gray-600 focus:outline-none text-sm  sm:text-sm dark:bg-gray-700 dark:text-white" @click.stop/>
-            <ul class="py-1">
-              <li v-for="user in filteredMembers" :key="user.id" @click="selectMember(user)" class="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700  sm:text-sm dark:bg-gray-700 dark:text-white">
-                <span :class="{'font-bold': isSelected(user.id)}">{{ user.namaLengkap }}</span>
-              </li>
-            </ul>
-            <p v-if="filteredMembers.length === 0" class="text-center text-gray-400 py-4 text-sm">Tidak ada anggota ditemukan.</p>
-          </div>
+    <div class="space-y-4">
+      <div 
+        class="flex items-center p-4 rounded-xl border transition-all duration-200 cursor-pointer"
+        :class="includeHead 
+          ? 'bg-indigo-50 border-indigo-500 dark:bg-indigo-900/20 dark:border-indigo-500' 
+          : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
+        @click="includeHead = !includeHead"
+      >
+        <div class="flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors"
+             :class="includeHead ? 'bg-indigo-600 border-indigo-600' : 'border-gray-400 bg-transparent'">
+           <svg v-if="includeHead" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
         </div>
-      </div> -->
-      <!-- End of Daftar pegawai yang muncul hanya dari tim yang dipilih -->
-
-      <hr class="border-gray-200 dark:border-gray-700">
-
-      <div>
-        <label for="melibatkanKepala" class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-          <input type="checkbox" id="melibatkanKepala" v-model="form.melibatkanKepala" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-          <span>Libatkan Kepala Kantor dalam aktivitas ini</span>
-        </label>
+        <div class="ml-3">
+          <span class="block text-sm font-medium" :class="includeHead ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300'">
+            Libatkan Kepala Kantor
+          </span>
+          <span class="block text-xs text-gray-500">Otomatis menambahkan Kepala Kantor ke daftar peserta</span>
+        </div>
       </div>
 
-      <hr class="border-gray-200 dark:border-gray-700">
+      <transition name="slide-fade">
+        <div v-if="form.teamId" class="flex flex-wrap gap-2 items-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-2">Pintasan:</span>
+          <button 
+            type="button"
+            @click="addMembersByTeam(form.teamId)"
+            class="group flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all shadow-sm"
+          >
+            <span class="w-4 h-4 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">+</span>
+            Semua Anggota Tim Ini
+          </button>
+          
+          <div class="relative group">
+            <select 
+              @change="addMembersByTeam($event.target.value); $event.target.value=''" 
+              class="appearance-none pl-3 pr-8 py-1.5 text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all shadow-sm cursor-pointer focus:outline-none"
+            >
+              <option value="">+ Dari Tim Lain...</option>
+              <option v-for="tm in teamList" :key="tm.id" :value="tm.id">{{ tm.namaTim }}</option>
+            </select>
+            <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-gray-400 group-hover:text-blue-500">
+               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+        </div>
+      </transition>
 
-      <div class="flex items-center space-x-6">
-        <label for="useDateRange" class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-          <input type="checkbox" id="useDateRange" v-model="form.useDateRange" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-          <span>Gunakan rentang tanggal</span>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Pegawai yang Terlibat 
+          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+            {{ selectedMembers.length }} orang
+          </span>
         </label>
-        <label for="useTime" class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-          <input type="checkbox" id="useTime" v-model="form.useTime" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-          <span>Gunakan jam</span>
+        
+        <div class="relative group">
+          <div 
+            class="min-h-[42px] w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 cursor-pointer transition-all duration-200 group-focus-within:ring-2 group-focus-within:ring-blue-500/50 group-focus-within:border-blue-500"
+            :class="isDropdownOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-300 dark:border-gray-600'"
+            @click="toggleDropdown"
+          >
+            <div v-if="selectedMembers.length === 0" class="text-gray-400 text-sm py-0.5">Klik untuk memilih pegawai...</div>
+            <div v-else class="flex flex-wrap gap-2">
+              <transition-group name="list">
+                <span 
+                  v-for="member in selectedMembers" 
+                  :key="member.id" 
+                  class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-800 transition-all hover:bg-blue-100"
+                >
+                  {{ member.namaLengkap }}
+                  <button type="button" @click.stop="removeMember(member.id)" class="ml-1.5 text-blue-400 hover:text-blue-600 focus:outline-none">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                  </button>
+                </span>
+              </transition-group>
+            </div>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+              <svg class="w-5 h-5 transition-transform duration-200" :class="{'rotate-180': isDropdownOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+
+          <transition name="dropdown">
+            <div v-if="isDropdownOpen" class="absolute z-30 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-72 overflow-hidden flex flex-col">
+              <div class="p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                  </div>
+                  <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    placeholder="Cari nama..." 
+                    class="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:border-blue-500 transition-colors" 
+                    @click.stop
+                    ref="searchInput"
+                  />
+                </div>
+              </div>
+              
+              <div
+                class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex justify-between items-center"
+                @click.stop="toggleSelectAllMembers"
+              >
+                <span>{{ selectAllText }}</span>
+                <span v-if="allFilteredSelected" class="text-blue-600">✓</span>
+              </div>
+
+              <ul class="overflow-y-auto flex-1 py-1 custom-scrollbar">
+                <li 
+                  v-for="user in filteredMembers" 
+                  :key="user.id" 
+                  @click.stop="selectMember(user)" 
+                  class="px-4 py-2.5 cursor-pointer text-sm flex justify-between items-center transition-colors border-l-4 border-transparent"
+                  :class="isSelected(user.id) 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-l-blue-500' 
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                >
+                  <div class="flex flex-col">
+                    <span class="font-medium">{{ user.namaLengkap }}</span>
+                    <span class="text-xs text-gray-500">{{ user.username }}</span>
+                  </div>
+                  <transition name="scale">
+                    <svg v-if="isSelected(user.id)" class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                  </transition>
+                </li>
+              </ul>
+              <div v-if="filteredMembers.length === 0" class="p-8 text-center">
+                <p class="text-gray-400 text-sm">Tidak ada pegawai ditemukan.</p>
+              </div>
+            </div>
+          </transition>
+          
+          <div v-if="isDropdownOpen" class="fixed inset-0 z-20" @click="isDropdownOpen = false"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
+
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center gap-6">
+        <label class="inline-flex items-center cursor-pointer">
+          <input type="checkbox" v-model="form.useDateRange" class="sr-only peer">
+          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Rentang Tanggal</span>
+        </label>
+
+        <label class="inline-flex items-center cursor-pointer">
+          <input type="checkbox" v-model="form.useTime" class="sr-only peer">
+          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Pakai Jam</span>
         </label>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label for="tanggal-mulai" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ form.useDateRange ? 'Tanggal Mulai' : 'Tanggal Pelaksanaan' }}
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ form.useDateRange ? 'Tanggal Mulai' : 'Tanggal Pelaksanaan' }} <span class="text-red-500">*</span>
           </label>
-          <input type="date" id="tanggal-mulai" v-model="form.tanggalMulai" :class="{ 'border-red-500': errors.tanggalMulai }" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"/>
+          <input type="date" v-model="form.tanggalMulai" :class="{ 'border-red-500': errors.tanggalMulai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
           <p v-if="errors.tanggalMulai" class="mt-1 text-xs text-red-500">{{ errors.tanggalMulai }}</p>
         </div>
-        <Transition name="fade">
+        
+        <transition name="slide-fade">
           <div v-if="form.useDateRange">
-            <label for="tanggal-selesai" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai</label>
-            <input type="date" id="tanggal-selesai" v-model="form.tanggalSelesai" :class="{ 'border-red-500': errors.tanggalSelesai }" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"/>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Selesai <span class="text-red-500">*</span></label>
+            <input type="date" v-model="form.tanggalSelesai" :class="{ 'border-red-500': errors.tanggalSelesai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
             <p v-if="errors.tanggalSelesai" class="mt-1 text-xs text-red-500">{{ errors.tanggalSelesai }}</p>
           </div>
-        </Transition>
+        </transition>
       </div>
 
-      <Transition name="fade">
+      <transition name="slide-fade">
         <div v-if="form.useTime" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="jam-mulai" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Jam Mulai</label>
-            <input type="time" id="jam-mulai" v-model="form.jamMulai" :class="{ 'border-red-500': errors.jamMulai }" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"/>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jam Mulai <span class="text-red-500">*</span></label>
+            <input type="time" v-model="form.jamMulai" :class="{ 'border-red-500': errors.jamMulai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
             <p v-if="errors.jamMulai" class="mt-1 text-xs text-red-500">{{ errors.jamMulai }}</p>
           </div>
           <div>
-            <label for="jam-selesai" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Jam Selesai</label>
-            <input type="time" id="jam-selesai" v-model="form.jamSelesai" :class="{ 'border-red-500': errors.jamSelesai }" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"/>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jam Selesai <span class="text-red-500">*</span></label>
+            <input type="time" v-model="form.jamSelesai" :class="{ 'border-red-500': errors.jamSelesai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
             <p v-if="errors.jamSelesai" class="mt-1 text-xs text-red-500">{{ errors.jamSelesai }}</p>
           </div>
         </div>
-      </Transition>
-      
-      <hr class="border-gray-200 dark:border-gray-700">
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Daftar Dokumen Wajib</label>
-        <div class="flex gap-2">
-          <input 
-            type="text" 
-            v-model="namaDokumenBaru"
-            @keydown.enter.prevent="tambahDokumen"
-            class="flex-grow block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-            placeholder="Contoh: Notulensi Rapat"
-          />
-          <button 
-            type="button"
-            @click="tambahDokumen"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-          >
-            Tambah
-          </button>
-        </div>
-        <ul v-if="daftarDokumenWajib.length > 0" class="mt-3 space-y-2">
-          <li 
-            v-for="(dokumen, index) in daftarDokumenWajib" 
-            :key="index"
-            class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-md"
-          >
-            <span class="text-sm text-gray-800 dark:text-gray-200">{{ dokumen }}</span>
-            <button @click="hapusDokumen(index)" type="button" class="p-1 text-gray-400 hover:text-red-500 rounded-full">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
-            </button>
-          </li>
-        </ul>
-      </div>
+      </transition>
     </div>
 
-    <div class="mt-6 flex justify-end gap-3">
-      <button type="button" @click="$emit('close')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none">
+    <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Daftar Dokumen Wajib</label>
+      <div class="flex gap-2">
+        <input 
+          type="text" 
+          v-model="namaDokumenBaru"
+          @keydown.enter.prevent="tambahDokumen"
+          class="flex-grow block px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500/50 outline-none sm:text-sm dark:bg-gray-800 dark:text-white"
+          placeholder="Contoh: Notulensi Rapat"
+        />
+        <button 
+          type="button" 
+          @click="tambahDokumen" 
+          class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md transition-all active:scale-95"
+        >
+          Tambah
+        </button>
+      </div>
+      
+      <transition-group name="list" tag="ul" class="mt-3 space-y-2">
+        <li 
+          v-for="(dokumen, index) in daftarDokumenWajib" 
+          :key="index" 
+          class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all"
+        >
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="text-sm text-gray-700 dark:text-gray-200 font-medium">{{ dokumen }}</span>
+          </div>
+          <button @click="hapusDokumen(index)" type="button" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </li>
+      </transition-group>
+      <p v-if="daftarDokumenWajib.length === 0" class="text-xs text-gray-500 italic mt-2 pl-1">Belum ada dokumen wajib ditambahkan.</p>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-4 mt-6 border-t border-gray-200 dark:border-gray-700">
+      <button type="button" @click="$emit('close')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors">
         Batal
       </button>
-      <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none">
+      <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105">
         {{ tipe }} Aktivitas
       </button>
     </div>
@@ -244,97 +370,34 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, computed } from 'vue';
+import { reactive, ref, watch, computed, nextTick } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from 'vue-toastification';
 
 const authStore = useAuthStore();
+const toast = useToast();
+
 const props = defineProps({
-  initialData: {
-    type: Object,
-    default: null
-  },
+  initialData: { type: Object, default: null },
   teamList: { type: Array, required: true },
   projectList: { type: Array, required: true },
-  pegawaiList: {type: Array, required: true},
-  teamMembers: { type: Object, required: true },
+  pegawaiList: { type: Array, required: true },
   tipe: { type: String, required: true } 
-});
-  
-const daftarTim = computed(() => {
-  if (!props.teamList) {
-    return [];
-  }
-  if (!authStore.user?.teams) {
-    return [];
-  }
-  const userTeamIds = authStore.user.teams.map(team => team.id);
-  
-  return props.teamList.filter(tim => 
-    userTeamIds.includes(tim.id)
-  );
-});
-
-const filteredProjects = computed(() => {
-  if (!form.teamId || !props.projectList) {
-    return [];
-  }
-  return props.projectList.filter(project => project.teamId === form.teamId);
 });
 
 const emit = defineEmits(['close', 'submit']);
 
-// State untuk multi-select
+// --- STATE ---
 const isDropdownOpen = ref(false);
 const searchQuery = ref('');
-const selectedMembers = ref([]);
+const searchInput = ref(null); 
+const selectedMembers = ref([]); 
+const includeHead = ref(false); 
 
-// Komputerisasi untuk anggota tim yang difilter
-const filteredMembers = computed(() => {
-  const members = props.pegawaiList || []; // Gunakan pegawaiList dari props
-  const query = searchQuery.value.toLowerCase();
-  if (!query) return members; // Tampilkan semua jika tidak ada pencarian
-  return members.filter(user =>
-    user.namaLengkap.toLowerCase().includes(query) || user.username.toLowerCase().includes(query)
-  );
-});
+const namaDokumenBaru = ref('');
+const daftarDokumenWajib = ref([]);
 
-// Cek apakah semua anggota yang terfilter sudah dipilih
-const allFilteredSelected = computed(() => {
-  if (filteredMembers.value.length === 0) return false;
-  return filteredMembers.value.every(member => isSelected(member.id));
-});
-
-// Teks untuk tombol Select/Deselect All
-const selectAllText = computed(() => {
-  return allFilteredSelected.value ? '❌ Batal Pilih Semua' : '✅ Pilih Semua';
-});
-
-// Fungsi untuk memilih/batal memilih semua anggota yang terfilter
-const toggleSelectAllMembers = () => {
-  if (allFilteredSelected.value) {
-    // Jika semua sudah terpilih, batalkan pilihan (kosongkan)
-    selectedMembers.value = [];
-  } else {
-    // Jika belum semua terpilih, pilih semua dari filteredMembers
-    // Penting: Buat salinan agar tidak mereferensikan array yang sama
-    selectedMembers.value = [...filteredMembers.value];
-  }
-};
-
-// Method untuk multi-select
-const toggleDropdown = () => { isDropdownOpen.value = !isDropdownOpen.value; };
-const isSelected = (id) => selectedMembers.value.some(member => member.id === id);
-const selectMember = (user) => {
-  if (!isSelected(user.id)) {
-    selectedMembers.value.push(user);
-  } else {
-    removeMember(user.id);
-  }
-};
-const removeMember = (id) => {
-  selectedMembers.value = selectedMembers.value.filter(member => member.id !== id);
-};
-
+// --- GANTI variable name ke camelCase (idTimTerkait) ---
 const form = reactive({
   namaAktivitas: '',
   deskripsi: '',
@@ -346,65 +409,7 @@ const form = reactive({
   tanggalSelesai: '',
   jamMulai: '',
   jamSelesai: '',
-  melibatkanKepala: false
-});
-
-const namaDokumenBaru = ref('');
-const daftarDokumenWajib = ref([]);
-
-const tambahDokumen = () => {
-  if (namaDokumenBaru.value.trim()) {
-    daftarDokumenWajib.value.push(namaDokumenBaru.value.trim());
-    namaDokumenBaru.value = '';
-  }
-};
-
-const hapusDokumen = (index) => {
-  daftarDokumenWajib.value.splice(index, 1);
-};
-
-// Mengisi form saat ada initialData (lebih andal)
-watch(() => props.initialData, (newData) => {
-  Object.assign(form, {
-    namaAktivitas: '', deskripsi: '', teamId: '', useDateRange: false,
-    useTime: false, tanggalMulai: '', tanggalSelesai: '', jamMulai: '', jamSelesai: '',
-  });
-  daftarDokumenWajib.value = [];
-  selectedMembers.value = []; // Tambahan: Reset anggota yang dipilih
-
-  if (newData) {
-    form.namaAktivitas = newData.namaAktivitas || '';
-    form.deskripsi = newData.deskripsi || '';
-    form.teamId = newData.teamId || '';
-    form.projectId = newData.projectId || '';
-    form.melibatkanKepala = newData.melibatkanKepala || false;
-
-    const isRange = !!newData.tanggalSelesai;
-    form.useDateRange = isRange;
-    form.tanggalMulai = newData.tanggalMulai?.split('T')[0] || '';
-    form.tanggalSelesai = isRange ? newData.tanggalSelesai?.split('T')[0] || '' : '';
-
-    form.useTime = !!newData.jamMulai;
-    form.jamMulai = newData.jamMulai || '';
-    form.jamSelesai = newData.jamSelesai || '';
-    daftarDokumenWajib.value = newData.daftarDokumenWajib?.map(d => d.namaDokumen) || [];
-    selectedMembers.value = newData.users || []; // Tambahan: Isi anggota yang sudah ada
-  }
-}, { immediate: true, deep: true });
-
-watch(() => form.teamId, (newTeamId, oldTeamId) => {
-  if (newTeamId !== oldTeamId) {
-    form.projectId = '';
-    selectedMembers.value = [];
-    isDropdownOpen.value = false;
-    searchQuery.value = '';
-  }
-});
-
-watch(() => form.useDateRange, (isRange) => {
-  if (!isRange) {
-    form.tanggalSelesai = '';
-  }
+  idTimTerkait: [] // <-- SUDAH DIPERBAIKI JADI camelCase
 });
 
 const errors = reactive({
@@ -416,6 +421,105 @@ const errors = reactive({
   jamMulai: null,
   jamSelesai: null,
 });
+
+// --- COMPUTED ---
+
+const daftarTim = computed(() => {
+  if (!props.teamList || !authStore.user?.teams) return [];
+  const userTeamIds = authStore.user.teams.map(team => team.id);
+  return props.teamList.filter(tim => userTeamIds.includes(tim.id));
+});
+
+const filteredProjects = computed(() => {
+  if (!form.teamId || !props.projectList) return [];
+  return props.projectList.filter(project => project.teamId === form.teamId);
+});
+
+const kepalaKantorObj = computed(() => {
+  if (!props.pegawaiList) return null;
+  return props.pegawaiList.find(p => p.jabatan?.namaJabatan === 'Kepala Kantor');
+});
+
+const filteredMembers = computed(() => {
+  const members = props.pegawaiList || [];
+  const query = searchQuery.value.toLowerCase();
+  if (!query) return members;
+  return members.filter(user =>
+    user.namaLengkap.toLowerCase().includes(query) || 
+    user.username.toLowerCase().includes(query)
+  );
+});
+
+const allFilteredSelected = computed(() => {
+  if (filteredMembers.value.length === 0) return false;
+  return filteredMembers.value.every(member => isSelected(member.id));
+});
+
+const selectAllText = computed(() => {
+  return allFilteredSelected.value ? 'Batal Pilih Semua' : 'Pilih Semua (Hasil Pencarian)';
+});
+
+// --- METHODS ---
+
+const toggleDropdown = () => { 
+  isDropdownOpen.value = !isDropdownOpen.value;
+  if (isDropdownOpen.value) {
+    nextTick(() => {
+      searchInput.value?.focus();
+    });
+  }
+};
+
+const isSelected = (id) => selectedMembers.value.some(member => member.id === id);
+
+const selectMember = (user) => {
+  if (!isSelected(user.id)) {
+    selectedMembers.value.push(user);
+  } else {
+    removeMember(user.id);
+  }
+};
+
+const removeMember = (id) => {
+  selectedMembers.value = selectedMembers.value.filter(member => member.id !== id);
+};
+
+const toggleSelectAllMembers = () => {
+  if (allFilteredSelected.value) {
+    const visibleIds = filteredMembers.value.map(u => u.id);
+    selectedMembers.value = selectedMembers.value.filter(m => !visibleIds.includes(m.id));
+  } else {
+    const newMembers = filteredMembers.value.filter(u => !isSelected(u.id));
+    selectedMembers.value = [...selectedMembers.value, ...newMembers];
+  }
+};
+
+const addMembersByTeam = (targetTeamId) => {
+  if (!targetTeamId) return;
+  targetTeamId = parseInt(targetTeamId);
+  const membersToAdd = props.pegawaiList.filter(user => 
+    user.teams && user.teams.some(t => t.id === targetTeamId)
+  );
+
+  if (membersToAdd.length === 0) {
+    toast.info("Tidak ada anggota tim yang ditemukan (data belum dimuat).");
+    return;
+  }
+
+  const newOnes = membersToAdd.filter(u => !isSelected(u.id));
+  selectedMembers.value = [...selectedMembers.value, ...newOnes];
+  toast.success(`Menambahkan ${newOnes.length} anggota.`);
+};
+
+const tambahDokumen = () => {
+  if (namaDokumenBaru.value.trim()) {
+    daftarDokumenWajib.value.push(namaDokumenBaru.value.trim());
+    namaDokumenBaru.value = '';
+  }
+};
+const hapusDokumen = (index) => {
+  daftarDokumenWajib.value.splice(index, 1);
+};
 
 const validate = () => {
   Object.keys(errors).forEach(key => errors[key] = null);
@@ -430,7 +534,7 @@ const validate = () => {
   if (form.useDateRange) {
     if (!form.tanggalSelesai) { errors.tanggalSelesai = 'Wajib diisi.'; isValid = false; }
     if (form.tanggalMulai && form.tanggalSelesai && form.tanggalSelesai < form.tanggalMulai) {
-      errors.tanggalSelesai = 'Tanggal selesai tidak boleh sebelum tanggal mulai.';
+      errors.tanggalSelesai = 'Tanggal selesai tidak boleh sebelum mulai.';
       isValid = false;
     }
   }
@@ -441,7 +545,7 @@ const validate = () => {
     
     const isSameDay = !form.useDateRange || (form.useDateRange && form.tanggalMulai === form.tanggalSelesai);
     if (form.jamMulai && form.jamSelesai && isSameDay && form.jamSelesai <= form.jamMulai) {
-      errors.jamSelesai = 'Jam selesai harus setelah jam mulai (di hari yang sama).';
+      errors.jamSelesai = 'Jam selesai harus setelah jam mulai.';
       isValid = false;
     }
   }
@@ -452,22 +556,159 @@ const handleSubmit = () => {
   if (validate()) {
     const payload = {
       ...form,
+      // Handle nullable fields for empty strings
+      tanggalSelesai: form.tanggalSelesai === '' ? null : form.tanggalSelesai,
+      jamMulai: form.jamMulai === '' ? null : form.jamMulai,
+      jamSelesai: form.jamSelesai === '' ? null : form.jamSelesai,
+
       daftarDokumenWajib: daftarDokumenWajib.value,
-      anggotaAktivitasIds: selectedMembers.value.map(member => member.id)
+      anggota_aktivitas_ids: selectedMembers.value.map(m => m.id), // Snake case is fine here as it's for backend
+      
+      // Mapping idTimTerkait (camelCase frontend) to idTimTerkait (snake_case backend schema)
+      idTimTerkait: form.idTimTerkait, // <-- MAP DI SINI
+
+      melibatkanKepala: false 
     };
     emit('submit', payload);
   }
 };
+
+// --- WATCHERS ---
+
+watch(includeHead, (val) => {
+  const kaban = kepalaKantorObj.value;
+  if (!kaban) return;
+
+  if (val) {
+    if (!isSelected(kaban.id)) selectedMembers.value.push(kaban);
+  } else {
+    removeMember(kaban.id);
+  }
+});
+
+watch(selectedMembers, (newMembers) => {
+  const kaban = kepalaKantorObj.value;
+  if (kaban) {
+    const kabanExists = newMembers.some(m => m.id === kaban.id);
+    if (includeHead.value !== kabanExists) {
+      includeHead.value = kabanExists;
+    }
+  }
+}, { deep: true });
+
+watch(() => form.teamId, (newId, oldId) => {
+  if (newId !== oldId && props.tipe === 'Buat') { 
+    form.projectId = '';
+  }
+});
+
+watch(() => form.useDateRange, (val) => { if(!val) form.tanggalSelesai = ''; });
+
+// INISIALISASI DATA (Edit Mode)
+watch(() => props.initialData, (newData) => {
+  Object.assign(form, {
+    namaAktivitas: '', deskripsi: '', teamId: '', projectId: '',
+    useDateRange: false, useTime: false, tanggalMulai: '', tanggalSelesai: '', 
+    jamMulai: '', jamSelesai: '', idTimTerkait: [] // <-- Init camelCase
+  });
+  daftarDokumenWajib.value = [];
+  selectedMembers.value = [];
+  includeHead.value = false;
+
+  if (newData) {
+    form.namaAktivitas = newData.namaAktivitas || '';
+    form.deskripsi = newData.deskripsi || '';
+    form.teamId = newData.teamId || '';
+    form.projectId = newData.projectId || '';
+    
+    // Mapping timTerkait (camelCase from API) -> form.idTimTerkait (camelCase frontend)
+    form.idTimTerkait = newData.timTerkait 
+      ? newData.timTerkait.map(t => t.id) 
+      : [];
+
+    // Fallback for snake_case just in case
+    if (form.idTimTerkait.length === 0 && newData.tim_terkait) {
+      form.idTimTerkait = newData.tim_terkait.map(t => t.id);
+    }
+
+    const isRange = !!newData.tanggalSelesai;
+    form.useDateRange = isRange;
+    form.tanggalMulai = newData.tanggalMulai ? newData.tanggalMulai.split('T')[0] : '';
+    form.tanggalSelesai = isRange && newData.tanggalSelesai ? newData.tanggalSelesai.split('T')[0] : '';
+
+    form.useTime = !!newData.jamMulai;
+    form.jamMulai = newData.jamMulai || '';
+    form.jamSelesai = newData.jamSelesai || '';
+    
+    daftarDokumenWajib.value = newData.daftarDokumenWajib ? newData.daftarDokumenWajib.map(d => d.namaDokumen) : [];
+    selectedMembers.value = newData.users ? [...newData.users] : [];
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+/* Transitions */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.slide-up-enter-active, .slide-up-leave-active {
+  transition: all 0.25s ease-out;
+  max-height: 100px;
+  opacity: 1;
+}
+.slide-up-enter-from, .slide-up-leave-to {
+  max-height: 0;
   opacity: 0;
+  transform: translateY(5px);
+}
+
+.dropdown-enter-active, .dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+.dropdown-enter-from, .dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.95);
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.scale-enter-active {
+  transition: all 0.2s ease;
+}
+.scale-enter-from {
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 20px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
 }
 </style>

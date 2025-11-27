@@ -13,13 +13,13 @@
 
     <div v-else class="space-y-8">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard {{ dashboardTitle }}</h1>
-        <button
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dashboard {{ dashboardTitle }}</h1>
+        <button 
           @click="isModalAktivitasOpen = true"
-          class="mt-4 sm:mt-0 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
+          class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-          <span>Buat Aktivitas</span>
+          <span class="text-xl font-bold">+</span>
+          <span class="font-semibold">Buat Aktivitas</span>
         </button>
       </div>
 

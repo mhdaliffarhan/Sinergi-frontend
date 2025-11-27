@@ -1,112 +1,180 @@
 <template>
-  <form @submit.prevent="handleSubmit">
+  <form @submit.prevent="handleSubmit" class="space-y-6 text-gray-800 dark:text-gray-200">
+    
     <div class="space-y-4">
-      
-      <div>
-        <label for="nama-tim" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Tim</label>
+      <div class="relative">
+        <label for="nama-tim" class="block text-sm font-medium mb-1 transition-colors" :class="errors.namaTim ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
+          Nama Tim <span class="text-red-500">*</span>
+        </label>
         <input 
           type="text" 
           id="nama-tim" 
           v-model="form.namaTim"
-          :class="{ 'border-red-500': errors.namaTim }"
-          class="mt-1 block w-full px-3 py-2 border text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+          :class="errors.namaTim ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-600'"
           placeholder="Contoh: Tim Neraca 2025"
         />
-        <p v-if="errors.namaTim" class="mt-1 text-xs text-red-500">{{ errors.namaTim }}</p>
+        <transition name="slide-fade">
+          <p v-if="errors.namaTim" class="mt-1 text-xs text-red-500 flex items-center">
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+            {{ errors.namaTim }}
+          </p>
+        </transition>
       </div>
 
-      <div>
-        <label for="ketua-tim" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ketua Tim</label>
-        <select 
-          id="ketua-tim" 
-          v-model="form.ketuaTimId"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-        >
-          <option :value="null">-- Tidak ada ketua tim --</option>
-          <option v-for="user in userList" :key="user.id" :value="user.id">
-            {{ user.namaLengkap }}
-          </option>
-        </select>
-        <p v-if="errors.ketuaTimId" class="mt-1 text-xs text-red-500">{{ errors.ketuaTimId }}</p>
-      </div>
-
-      <div>
-        <label for="operator" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Operator Tim (Opsional)</label>
-        <div class="relative mt-1">
-          <div class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
-            <div v-if="selectedOperators.length === 0" class="text-gray-400">Pilih satu atau lebih operator...</div>
-            <div v-else class="flex flex-wrap gap-2">
-              <span v-for="operator in selectedOperators" :key="operator.id" class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-800 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
-                {{ operator.namaLengkap }}
-                <button type="button" @click.stop="removeOperator(operator.id)" class="ml-1 -mr-0.5 h-4 w-4 text-blue-500 hover:text-blue-700">
-                  <svg class="h-full w-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-              </span>
-            </div>
-          </div>
-          
-          <div v-if="isDropdownOpen" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
-            <input type="text" v-model="searchQuery" placeholder="Cari pengguna..." class="sticky top-0 w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-300 dark:border-gray-600 focus:outline-none text-sm dark:text-white" @click.stop/>
-            <ul class="py-1">
-              <li v-for="user in filteredUsersForOperator" :key="user.id" @click="selectOperator(user)" class="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-sm dark:text-white">
-                <span :class="{'font-bold': isOperatorSelected(user.id)}">{{ user.namaLengkap }}</span>
-              </li>
-            </ul>
-            <p v-if="filteredUsersForOperator.length === 0" class="text-center text-gray-400 py-4 text-sm">Pengguna tidak ditemukan.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label for="valid-from" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Periode Aktif Mulai</label>
-          <input 
-            type="date" 
-            id="valid-from" 
-            v-model="form.validFrom"
-            class="mt-1 block w-full px-3 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-         <p v-if="errors.validFrom" class="mt-1 text-xs text-red-500">{{ errors.validFrom }}</p>
-        </div>
-        <div>
-          <label for="valid-until" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Periode Aktif Selesai</label>
-          <input 
-            type="date" 
-            id="valid-until" 
-            v-model="form.validUntil"
-            :class="{ 'border-red-500': errors.validUntil }"
-            class="mt-1 block w-full px-3 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-          <p v-if="errors.validUntil" class="mt-1 text-xs text-red-500">{{ errors.validUntil }}</p>
-        </div>
-      </div>
-
-      <!-- Warna Tim -->
-      <div>
-        <label for="warna" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Warna Tim
+      <div class="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 flex items-center justify-between">
+        <label for="warna" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Warna Identitas Tim
         </label>
-        <div class="flex items-center gap-3 mt-1">
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+            {{ form.warna }}
+          </span>
           <input 
             id="warna"
             type="color"
             v-model="form.warna"
-            class="w-12 h-10 cursor-pointer border border-gray-300 dark:border-gray-600 rounded"
+            class="w-10 h-10 cursor-pointer border-none rounded-lg shadow-sm p-0 bg-transparent overflow-hidden transition-transform hover:scale-110"
           />
-          <span class="text-sm text-gray-600 dark:text-gray-300">
-            {{ form.warna }}
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
+
+    <div class="grid grid-cols-1 gap-6">
+      
+      <div>
+        <label for="ketua-tim" class="block text-sm font-medium mb-1 transition-colors" :class="errors.ketuaTimId ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
+          Ketua Tim <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <select 
+            id="ketua-tim" 
+            v-model="form.ketuaTimId"
+            class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm appearance-none transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer"
+            :class="errors.ketuaTimId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'"
+          >
+            <option :value="null">-- Pilih Ketua Tim --</option>
+            <option v-for="user in userList" :key="user.id" :value="user.id">
+              {{ user.namaLengkap }}
+            </option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
+        <transition name="slide-fade">
+          <p v-if="errors.ketuaTimId" class="mt-1 text-xs text-red-500">{{ errors.ketuaTimId }}</p>
+        </transition>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Operator Tim (Opsional)
+          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+            {{ selectedOperators.length }} dipilih
           </span>
+        </label>
+        
+        <div class="relative group">
+          <div 
+            class="min-h-[42px] w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 cursor-pointer transition-all duration-200 group-focus-within:ring-2 group-focus-within:ring-indigo-500/50 group-focus-within:border-indigo-500 border-gray-300 dark:border-gray-600"
+            @click="isDropdownOpen = !isDropdownOpen"
+          >
+            <div v-if="selectedOperators.length === 0" class="text-gray-400 text-sm py-0.5">Pilih satu atau lebih operator...</div>
+            <div v-else class="flex flex-wrap gap-2">
+              <transition-group name="list">
+                <span 
+                  v-for="operator in selectedOperators" 
+                  :key="operator.id" 
+                  class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-200 dark:border-indigo-800 transition-all hover:bg-indigo-100"
+                >
+                  {{ operator.namaLengkap }}
+                  <button type="button" @click.stop="removeOperator(operator.id)" class="ml-1.5 text-indigo-400 hover:text-indigo-600 focus:outline-none">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                  </button>
+                </span>
+              </transition-group>
+            </div>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+              <svg class="w-5 h-5 transition-transform duration-200" :class="{'rotate-180': isDropdownOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+
+          <transition name="dropdown">
+            <div v-if="isDropdownOpen" class="absolute z-30 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-hidden flex flex-col">
+              <div class="p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <input 
+                  type="text" 
+                  v-model="searchQuery" 
+                  placeholder="Cari nama..." 
+                  class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition-colors" 
+                  @click.stop
+                />
+              </div>
+              
+              <ul class="overflow-y-auto flex-1 py-1 custom-scrollbar">
+                <li 
+                  v-for="user in filteredUsersForOperator" 
+                  :key="user.id" 
+                  @click.stop="selectOperator(user)" 
+                  class="px-4 py-2.5 cursor-pointer text-sm flex justify-between items-center transition-colors border-l-4 border-transparent"
+                  :class="isOperatorSelected(user.id) 
+                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-l-indigo-500' 
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                >
+                  <span>{{ user.namaLengkap }}</span>
+                  <transition name="scale">
+                    <svg v-if="isOperatorSelected(user.id)" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                  </transition>
+                </li>
+              </ul>
+              <div v-if="filteredUsersForOperator.length === 0" class="p-4 text-center text-gray-400 text-sm">
+                Pengguna tidak ditemukan.
+              </div>
+            </div>
+          </transition>
+          
+          <div v-if="isDropdownOpen" class="fixed inset-0 z-20" @click="isDropdownOpen = false"></div>
         </div>
       </div>
 
     </div>
 
-    <div class="mt-6 flex justify-end gap-3">
-      <button type="button" @click="$emit('close')" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600">
+    <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="valid-from" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Periode Aktif Mulai</label>
+        <input 
+          type="date" 
+          id="valid-from" 
+          v-model="form.validFrom"
+          :class="{ 'border-red-500': errors.validFrom }"
+          class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"
+        />
+        <p v-if="errors.validFrom" class="mt-1 text-xs text-red-500">{{ errors.validFrom }}</p>
+      </div>
+      <div>
+        <label for="valid-until" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Periode Aktif Selesai</label>
+        <input 
+          type="date" 
+          id="valid-until" 
+          v-model="form.validUntil"
+          :class="{ 'border-red-500': errors.validUntil }"
+          class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"
+        />
+        <p v-if="errors.validUntil" class="mt-1 text-xs text-red-500">{{ errors.validUntil }}</p>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-4 mt-6 border-t border-gray-200 dark:border-gray-700">
+      <button type="button" @click="$emit('close')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors">
         Batal
       </button>
-      <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-        Simpan
+      <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105">
+        Simpan Tim
       </button>
     </div>
   </form>
@@ -186,14 +254,9 @@ watchEffect(() => {
 
     // Isi selectedOperators JIKA data operators ada di initialData
     if (props.initialData.operators && Array.isArray(props.initialData.operators)) {
-        console.log("Found operators in initialData:", JSON.parse(JSON.stringify(props.initialData.operators))); // DEBUG LOG 2
         // Pastikan kita membuat salinan array untuk reaktivitas
         selectedOperators.value = [...props.initialData.operators];
-    } else {
-        console.log("No operators found in initialData or not an array."); // DEBUG LOG 3
     }
-  } else {
-      console.log("FormTim: Not in edit mode or no initialData."); // DEBUG LOG 4
   }
 });
 
@@ -236,3 +299,59 @@ const handleSubmit = () => {
   }
 };
 </script>
+
+<style scoped>
+/* Transitions */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.dropdown-enter-active, .dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+.dropdown-enter-from, .dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.95);
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.scale-enter-active {
+  transition: all 0.2s ease;
+}
+.scale-enter-from {
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 20px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+</style>

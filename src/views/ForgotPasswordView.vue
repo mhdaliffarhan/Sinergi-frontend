@@ -57,7 +57,16 @@
             {{ isLoading ? 'Memproses...' : 'Kirim Link Reset' }}
           </button>
         </form>
-      </div>
+
+        <div class="mt-6 text-center">
+          <router-link 
+            to="/login" 
+            class="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          >
+            &larr; Kembali ke Login
+          </router-link>
+        </div>
+        </div>
       
       <div v-else class="text-center space-y-4">
         <span class="text-7xl">📨</span>
@@ -106,8 +115,7 @@ const handleSubmit = async () => {
       username: username.value
     });
     
-    // Apapun hasilnya, tampilkan pesan sukses (demi keamanan, agar tidak
-    // memberi tahu peretas jika username-nya ada atau tidak)
+    // Apapun hasilnya, tampilkan pesan sukses (demi keamanan)
     isSubmitted.value = true;
     
   } catch (error) {
