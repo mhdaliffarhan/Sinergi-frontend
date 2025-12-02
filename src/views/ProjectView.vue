@@ -10,7 +10,7 @@
         </p>
       </div>
       
-      <div class="mt-4 sm:mt-0 flex-shrink-0" v-if="authStore.user?.isKetuaTim || authStore.isOperator">
+      <div class="mt-4 sm:mt-0 flex-shrink-0" v-if="authStore.user?.isKetuaTim || authStore.isOperator || authStore.isSuperAdmin">
         <button 
           @click="openModal" 
           class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

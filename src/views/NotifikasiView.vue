@@ -1,138 +1,197 @@
 <template>
-  <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Semua Notifikasi</h1>
-      
-      <div class="flex items-center gap-3 mt-4 sm:mt-0">
-        <select v-model="filterStatus" @change="fetchNotifications(1)"
-          class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-        >
-          <option :value="null">Semua</option>
-          <option :value="false">Belum Dibaca</option>
-          <option :value="true">Sudah Dibaca</option>
-        </select>
-        
-        <button 
-          @click="markAllAsRead" 
-          :disabled="totalUnread === 0"
-          class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-        >
-          Tandai Semua Dibaca
-        </button>
-      </div>
-    </div>
+  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950 p-4 sm:pt-6 font-sans transition-colors duration-300 relative overflow-hidden">
     
-    <div v-if="isLoading" class="flex justify-center items-center h-64">
-      <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
+    <!-- BACKGROUND DECORATIONS -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl opacity-60 dark:opacity-20"></div>
+        <div class="absolute bottom-[-10%] right-[10%] w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-3xl opacity-60 dark:opacity-20"></div>
     </div>
 
-    <div v-else-if="notifications.length > 0" class="space-y-3">
-      <div 
-        v-for="notif in notifications" 
-        :key="notif.id"
-        @click="handleNotificationClick(notif)"
-        :class="[
-          // Logic ini memastikan HANYA UNREAD yang berwarna biru
-          !notif.isRead 
-            ? 'bg-blue-50 dark:bg-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-800/70' 
-            : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50' // Kembali ke normal jika sudah dibaca
-        ]"
-        class="block p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 cursor-pointer transition-colors duration-200"
-      >
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex items-center gap-3">
-            <span v-if="!notif.isRead" class="h-2 w-2 rounded-full bg-blue-600 flex-shrink-0" title="Belum Dibaca"></span>
-            <span v-else class="h-2 w-2 rounded-full bg-transparent flex-shrink-0"></span>
-            
-            <div class="flex-1 min-w-0">
-              <p class="text-base font-semibold text-gray-900 dark:text-white line-clamp-1" :class="{'font-extrabold': !notif.is_read}">
-                {{ notif.title }}
-              </p>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                {{ notif.massage }}
-              </p>
+    <!-- MAIN CONTENT -->
+    <div class="relative z-10 max-w-4xl mx-auto pb-20">
+      
+      <!-- HEADER -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+        <div>
+          <h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
+            <span class="text-4xl">🔔</span> Notifikasi
+          </h1>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
+            Anda memiliki <span class="font-bold text-blue-600 dark:text-blue-400">{{ totalUnread }}</span> notifikasi baru.
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <!-- Filter Dropdown -->
+          <div class="relative">
+            <select v-model="filterStatus" @change="fetchNotifications(1)"
+              class="appearance-none pl-4 pr-10 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer hover:border-blue-300 transition-colors"
+            >
+              <option :value="null">Semua</option>
+              <option :value="false">Belum Dibaca</option>
+              <option :value="true">Sudah Dibaca</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
-
-          <div class="mt-2 sm:mt-0 text-right sm:pl-4 flex-shrink-0">
-             <p class="text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">
-                {{ formatTimeAgo(notif.createdAt) }}
-            </p>
-          </div>
+          
+          <!-- Mark All Read Button -->
+          <button 
+            @click="markAllAsRead" 
+            :disabled="totalUnread === 0"
+            class="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/20 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span class="hidden sm:inline">Tandai Dibaca</span>
+          </button>
         </div>
       </div>
-    </div>
+      
+      <!-- LIST CONTAINER -->
+      <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 overflow-hidden relative min-h-[400px]">
+        
+        <!-- Decorative Top -->
+        <div class="h-1.5 bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500"></div>
 
-    <div v-else class="text-center p-10 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-      <p class="text-lg text-gray-500 dark:text-gray-400">Tidak ada notifikasi yang ditemukan.</p>
-    </div>
+        <div class="p-2 sm:p-4">
+          
+          <!-- LOADING -->
+          <div v-if="isLoading" class="flex flex-col items-center justify-center h-64">
+            <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-100 dark:border-blue-900 border-t-blue-600 mb-3"></div>
+            <p class="text-gray-400 text-sm animate-pulse">Memuat notifikasi...</p>
+          </div>
 
-    <Pagination
-      v-if="totalNotifikasi > itemsPerPage"
-      :current-page="currentPage"
-      :total-items="totalNotifikasi"
-      :items-per-page="itemsPerPage"
-      @page-changed="fetchNotifications"
-      class="mt-6 border-b-0 border-t border-gray-200 dark:border-gray-700 rounded-lg shadow-md"
-    />
+          <!-- NOTIFICATION LIST -->
+          <div v-else-if="notifications.length > 0" class="space-y-2">
+            <transition-group name="list">
+              <div 
+                v-for="notif in notifications" 
+                :key="notif.id"
+                @click="handleNotificationClick(notif)"
+                class="group relative flex flex-col sm:flex-row gap-3 p-4 rounded-2xl cursor-pointer transition-all duration-300 border border-transparent"
+                :class="[
+                  !notif.isRead 
+                    ? 'bg-blue-50/80 dark:bg-blue-900/20 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 border-blue-100 dark:border-blue-800/30' 
+                    : 'bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 border-gray-100 dark:border-gray-800'
+                ]"
+              >
+                <!-- Indikator Unread (Dot) -->
+                <div v-if="!notif.isRead" class="absolute top-4 right-4 sm:static sm:mt-1.5">
+                   <div class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50 animate-pulse"></div>
+                </div>
+                <!-- Spacer -->
+                <div v-else class="hidden sm:block w-2.5 h-2.5 mt-1.5"></div>
+
+                <!-- Icon Type -->
+                <div class="flex-shrink-0">
+                   <div 
+                    class="w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110"
+                    :class="!notif.isRead ? 'bg-white dark:bg-blue-900 text-blue-600 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'"
+                   >
+                     {{ getNotificationIcon(notif.type) }}
+                   </div>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0 pr-6 sm:pr-0">
+                  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1" :class="{'text-blue-700 dark:text-blue-300': !notif.isRead}">
+                      {{ notif.title }}
+                    </h3>
+                    <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-md border border-gray-100 dark:border-gray-700">
+                      {{ formatTimeAgo(notif.createdAt) }}
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 leading-relaxed line-clamp-2 group-hover:text-gray-800 dark:group-hover:text-gray-300 transition-colors">
+                    {{ notif.message || notif.massage }}
+                  </p>
+                </div>
+
+                <!-- Arrow Indicator -->
+                <div class="hidden sm:flex items-center text-gray-300 group-hover:text-blue-500 transition-colors opacity-0 group-hover:opacity-100">
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+              </div>
+            </transition-group>
+          </div>
+
+          <!-- EMPTY STATE -->
+          <div v-else class="flex flex-col items-center justify-center h-80 text-center">
+            <div class="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 text-4xl opacity-30 grayscale">
+              🔕
+            </div>
+            <p class="text-lg font-bold text-gray-900 dark:text-white">Tidak ada notifikasi</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Anda sudah melihat semua pembaruan terbaru.</p>
+          </div>
+
+        </div>
+
+        <!-- Pagination Footer -->
+        <div v-if="totalNotifikasi > itemsPerPage" class="bg-gray-50 dark:bg-gray-900/50 px-4 py-3 border-t border-gray-100 dark:border-gray-700">
+          <Pagination
+            :current-page="currentPage"
+            :total-items="totalNotifikasi"
+            :items-per-page="itemsPerPage"
+            @page-changed="fetchNotifications"
+          />
+        </div>
+
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useUIStore } from '@/stores/ui';
 import { useToast } from 'vue-toastification';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 import Pagination from '@/components/Pagination.vue';
-import { useUIStore } from '@/stores/ui';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const router = useRouter();
 const authStore = useAuthStore();
-const toast = useToast();
 const uiStore = useUIStore();
+const toast = useToast();
 
 const notifications = ref([]);
 const isLoading = ref(true);
 const currentPage = ref(1);
 const totalNotifikasi = ref(0);
 const itemsPerPage = 10;
-const filterStatus = ref(null); 
-
+const filterStatus = ref(false); 
 const totalUnread = ref(0);
 
 const formatTimeAgo = (dateString) => {
-  if (!dateString) return 'Input kosong';
+  if (!dateString) return '';
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      console.warn('Invalid date format received:', dateString);
-      return `Tidak valid: ${dateString}`; // Tampilkan input asli jika tidak valid
-    }
-    // Coba tampilkan format tanggal biasa dulu
-    // return date.toLocaleString('id-ID');
-    // Jika format biasa muncul, baru coba formatDistanceToNowStrict lagi
+    if (isNaN(date.getTime())) return 'Baru saja'; 
     return formatDistanceToNowStrict(date, { addSuffix: true, locale: id });
-  } catch (error) {
-    console.error('Error formatting date:', dateString, error);
-    return `Error: ${error.message}`; // Tampilkan pesan error
-  }
+  } catch (error) { return ''; }
 };
 
+const getNotificationIcon = (type) => {
+    if (!type) return '📢';
+    const t = type.toLowerCase();
+    if (t.includes('dokumen') || t.includes('upload')) return '📂';
+    if (t.includes('aktivitas') || t.includes('jadwal')) return '📅';
+    if (t.includes('tim') || t.includes('anggota')) return '👥';
+    if (t.includes('warning') || t.includes('tunggakan')) return '⚠️';
+    return '📢';
+};
 
 const fetchNotifications = async (page = 1) => {
     isLoading.value = true;
     currentPage.value = page;
     const skip = (page - 1) * itemsPerPage;
     
-    // Tentukan filter is_read
     let isReadQuery = filterStatus.value;
     if (filterStatus.value === 'false') isReadQuery = false;
     if (filterStatus.value === 'true') isReadQuery = true;
@@ -146,69 +205,74 @@ const fetchNotifications = async (page = 1) => {
             }
         });
         
-        notifications.value = response.data.items;
+        // Normalisasi data (mengatasi snake_case vs camelCase dari backend)
+        notifications.value = response.data.items.map(n => ({
+            ...n,
+            isRead: n.is_read !== undefined ? n.is_read : n.isRead,
+            createdAt: n.created_at || n.createdAt,
+            // Prioritaskan link_to (snake_case)
+            linkTo: n.link_to || n.linkTo
+        }));
+
         totalNotifikasi.value = response.data.total;
 
-        console.log("Notifikasi : ", notifications.value);
-        // Fetch count terpisah untuk tombol
+        // Update unread count global
         const countRes = await axios.get(`${baseURL}/api/notifications/count`);
         totalUnread.value = countRes.data.count;
 
     } catch (error) {
+        console.error("Fetch error:", error);
         toast.error("Gagal memuat notifikasi.");
-        console.error("Error fetching notifications:", error);
     } finally {
         isLoading.value = false;
     }
 };
 
 const handleNotificationClick = async (notif) => {
-    let shouldNavigate = false;
-    
-    if (!notif.is_read) {
+    // 1. Tentukan target link
+    const targetLink = notif.link_to || notif.linkTo; 
+
+    // 2. Jika belum dibaca, tandai dibaca (background process)
+    if (!notif.isRead) {
         try {
             await axios.patch(`${baseURL}/api/notifications/${notif.id}/read`);
             
-            // Update status di array lokal
-            const index = notifications.value.findIndex(n => n.id === notif.id);
-            if (index !== -1) {
-                notifications.value[index].is_read = true;
-            }
-            shouldNavigate = true;
+            // Optimistic Update Lokal
+            notif.isRead = true;
+            if(totalUnread.value > 0) totalUnread.value--;
             
-        } catch (e) {
-            console.error("Gagal menandai notifikasi sebagai dibaca:", e);
-        }
-    } else {
-        shouldNavigate = true;
+            // Sync Global Badge
+            uiStore.fetchNotificationCount(); 
+        } catch (e) { console.error("Read status error:", e); }
     }
     
-    // Perbarui count di header (UI Store)
-    await uiStore.fetchNotificationCount();
-    
-    if (shouldNavigate && notif.link_to) {
-        router.push(notif.link_to);
+    // 3. Navigasi (Selalu jalan meskipun API read error)
+    if (targetLink) {
+        // Cek apakah link internal (route vue) atau eksternal
+        if (targetLink.startsWith('http')) {
+             window.open(targetLink, '_blank');
+        } else {
+             router.push(targetLink);
+        }
     } else {
-        // Jika tidak ada link, reload list untuk memastikan status terupdate
-        fetchNotifications(currentPage.value); 
+        // Jika tidak ada link, cuma refresh list jika sedang filter "Belum Dibaca"
+        if (filterStatus.value === false) {
+            fetchNotifications(currentPage.value); 
+        }
     }
 };
 
 const markAllAsRead = async () => {
-    if (totalUnread.value === 0 || !window.confirm("Apakah Anda yakin ingin menandai semua notifikasi sebagai sudah dibaca?")) return;
+    if (totalUnread.value === 0) return;
+    if (!window.confirm("Tandai semua sebagai sudah dibaca?")) return;
     
     try {
         await axios.patch(`${baseURL}/api/notifications/mark-all-read`);
-        
-        // Perbarui tampilan dan header
         await fetchNotifications(currentPage.value);
-        
         await uiStore.fetchNotificationCount();
-        
-        toast.success("Semua notifikasi berhasil ditandai sudah dibaca!");
-        
+        toast.success("Semua notifikasi ditandai dibaca.");
     } catch (error) {
-        toast.error("Gagal menandai semua notifikasi sudah dibaca.");
+        toast.error("Gagal memproses permintaan.");
     }
 };
 
@@ -218,3 +282,15 @@ onMounted(() => {
 
 watch(filterStatus, () => fetchNotifications(1));
 </script>
+
+<style scoped>
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+</style>

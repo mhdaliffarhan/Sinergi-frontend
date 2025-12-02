@@ -322,14 +322,14 @@
     <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Daftar Dokumen Wajib</label>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Grup Dokumen Wajib</label>
       <div class="flex gap-2">
         <input 
           type="text" 
           v-model="namaDokumenBaru"
           @keydown.enter.prevent="tambahDokumen"
           class="flex-grow block px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500/50 outline-none sm:text-sm dark:bg-gray-800 dark:text-white"
-          placeholder="Contoh: Notulensi Rapat"
+          placeholder="Contoh: Dokumentasi"
         />
         <button 
           type="button" 

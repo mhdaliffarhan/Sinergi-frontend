@@ -83,7 +83,6 @@ const handleCloseModal = () => {
 
 const goToDetail = () => {
   emits('close');
-  // Emits the event to the parent so the parent can handle the navigation
   emits('goToDetail', props.aktivitas.id); 
 };
 </script>
