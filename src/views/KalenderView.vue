@@ -34,8 +34,6 @@
         <div v-else class="min-h-[500px]">
           
           <!-- Child Component: FullCalendar (Mode Team/Person) -->
-          <!-- Menggunakan v-if agar tidak dirender jika tidak dibutuhkan, menghemat resource -->
-          <!-- nextTick/setTimeout di handle di dalam komponen child via watch isLoading di parent -->
           <div v-if="(mode === 'team' || mode === 'person') && !isLoading">
              <KalenderFullCalendar 
                :events="calendarEvents"
@@ -70,10 +68,10 @@ import axios from "axios";
 import { useToast } from 'vue-toastification';
 import { subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 
-// Import Components
-import KalenderFilter from '@/components/kalender/CalendarFilter.vue';
-import KalenderFullCalendar from '@/components/kalender/FullCalendarWrapper.vue';
-import KalenderTimeline from '@/components/kalender/GanttTimeline.vue';
+// Import Components (Sesuaikan path jika berbeda)
+import KalenderFilter from '@/components/kalender/KalenderFilter.vue';
+import KalenderFullCalendar from '@/components/kalender/KalenderFullCalendar.vue';
+import KalenderTimeline from '@/components/kalender/KalenderTimeline.vue';
 import ModalAktivitas from '@/components/aktivitas/ModalAktivitas.vue';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -84,7 +82,7 @@ const router = useRouter();
 // State
 const isModalOpen = ref(false);
 const selectedAktivitas = ref(null);
-const isLoading = ref(true); // START WITH TRUE
+const isLoading = ref(true);
 const mode = ref("team");
 const selectedTeams = ref([]); 
 const selectedPegawaiId = ref(null);
@@ -93,6 +91,7 @@ const searchQuery = ref("");
 const teams = ref([]);
 const aktivitas = ref([]);
 const timelineCurrentDate = ref(new Date());
+const kepalaKantorUser = ref(null); // State baru untuk menyimpan data user Kepala Kantor
 
 // Logic Date Navigation
 const prevMonth = () => { timelineCurrentDate.value = subMonths(timelineCurrentDate.value, 1); };
@@ -106,7 +105,6 @@ const openModal = async (aktivitasId) => {
         isModalOpen.value = true;
     } catch (error) {
         toast.error('Gagal memuat detail aktivitas.');
-        console.error('Error fetching aktivitas details:', error);
     }
 };
 
@@ -129,14 +127,17 @@ const fetchInitialData = async () => {
     ]);
     teams.value = teamsResponse.data.items;
     
-    const kepalaTim = {
+    const kepalaKantor = {
       id: 'kepala-kantor-filter', 
       namaTim: 'Kepala Kantor',
       warna: '#0ea5e9' 
     };
-    teams.value.unshift(kepalaTim);
+    teams.value.unshift(kepalaKantor);
     
     allPegawai.value = usersResponse.data.items.sort((a, b) => a.namaLengkap.localeCompare(b.namaLengkap));
+    
+    // Cari User Kepala Kantor (berdasarkan jabatan string mengandung 'Kepala Kantor')
+    kepalaKantorUser.value = allPegawai.value.find(p => p.jabatan?.namaJabatan?.toLowerCase().includes("kepala kantor"));
 
     // Default Filter Logic
     const currentUser = authStore.user;
@@ -150,7 +151,8 @@ const fetchInitialData = async () => {
                 }
             }
         });
-        if (currentUser.jabatan?.namaJabatan === "Kepala Kantor") {
+        // Jika user yang login adalah Kepala Kantor, default filter ke 'Kepala Kantor'
+        if (currentUser.jabatan?.namaJabatan?.toLowerCase().includes("kepala kantor")) {
              const teamKepala = teams.value.find(t => t.id === 'kepala-kantor-filter');
              if (teamKepala) defaultSelectedTeams.push(teamKepala);
         }
@@ -177,6 +179,7 @@ const fetchAktivitas = async () => {
 
     if (mode.value === 'team' || mode.value === 'timeline') {
       if (isKepalaSelected) {
+        // Prioritaskan endpoint khusus kepala
         endpoint = `${baseURL}/api/aktivitas/kepala`;
       } else {
         endpoint = `${baseURL}/api/kalender/events`;
@@ -194,42 +197,14 @@ const fetchAktivitas = async () => {
     console.error("Gagal mengambil data aktivitas:", err);
     toast.error("Gagal mengambil data aktivitas.");
   } finally {
-    // Delay sedikit untuk animasi
+    // Delay sedikit untuk transisi halus
     setTimeout(() => {
        isLoading.value = false;
     }, 300);
   }
 };
 
-// Filter Logic
-const toggleTeam = async (team) => {
-  const index = selectedTeams.value.findIndex(t => t.id === team.id);
-  if (team.id === 'kepala-kantor-filter') {
-    selectedTeams.value = [team];
-  } else if (index > -1) { 
-    selectedTeams.value.splice(index, 1); 
-  } else { 
-    selectedTeams.value.push(team); 
-    const kepalaIndex = selectedTeams.value.findIndex(t => t.id === 'kepala-kantor-filter');
-    if (kepalaIndex > -1) {
-      selectedTeams.value.splice(kepalaIndex, 1);
-    }
-  }
-  await fetchAktivitas();
-};
-
-const selectAllTeams = async () => { 
-  selectedTeams.value = [];
-  await fetchAktivitas();
-};
-
-const selectPegawai = (pegawai) => {
-  selectedPegawaiId.value = pegawai.id;
-  searchQuery.value = pegawai.id ? pegawai.namaLengkap : "";
-  // Fetch handled by watch mode
-};
-
-// Computed Properties
+// Computed Properties & Filters
 const filteredPegawai = computed(() => {
   if (!searchQuery.value) return allPegawai.value;
   const query = searchQuery.value.toLowerCase();
@@ -240,7 +215,14 @@ const filteredActivities = computed(() => {
   let data = aktivitas.value || [];
   const isKepalaSelected = selectedTeams.value.some(t => String(t.id) === 'kepala-kantor-filter');
 
-  if (mode.value === 'team' && isKepalaSelected) return data;
+  // PERBAIKAN: Filter Ketat untuk Mode Kepala Kantor
+  if (mode.value === 'team' && isKepalaSelected) {
+    // Hanya tampilkan aktivitas dimana Kepala Kantor menjadi peserta (users)
+    if (kepalaKantorUser.value) {
+        return data.filter(a => a.users && a.users.some(u => u.id === kepalaKantorUser.value.id));
+    }
+    return data; 
+  }
 
   if (mode.value === 'team') {
     if (selectedTeams.value.length > 0) {
@@ -265,8 +247,10 @@ const daftarPegawaiTimeline = computed(() => {
   const isKepalaSelected = selectedTeams.value.some(t => t.id === 'kepala-kantor-filter');
 
   if (isKepalaSelected) {
-    const kepala = allPegawai.value.find(p => p.jabatan?.namaJabatan === "Kepala Kantor");
-    if (kepala) pegawaiMap.set(kepala.id, kepala);
+    // PERBAIKAN: Hanya tampilkan Kepala Kantor di row timeline
+    if (kepalaKantorUser.value) {
+       pegawaiMap.set(kepalaKantorUser.value.id, kepalaKantorUser.value);
+    }
   } else if (mode.value === 'timeline' && selectedTeams.value.length > 0) {
     selectedTeams.value.forEach(t => {
       const teamData = teams.value.find(team => team.id === t.id);
@@ -313,6 +297,34 @@ const timelineDates = computed(() => {
   });
 });
 
+// Actions
+const toggleTeam = async (team) => {
+  const index = selectedTeams.value.findIndex(t => t.id === team.id);
+  if (team.id === 'kepala-kantor-filter') {
+    // Jika klik kepala kantor, reset filter lain dan set hanya kepala kantor
+    selectedTeams.value = [team];
+  } else if (index > -1) { 
+    selectedTeams.value.splice(index, 1); 
+  } else { 
+    // Jika pilih tim biasa, hapus filter kepala kantor jika ada
+    const kepalaIndex = selectedTeams.value.findIndex(t => t.id === 'kepala-kantor-filter');
+    if (kepalaIndex > -1) selectedTeams.value.splice(kepalaIndex, 1);
+    
+    selectedTeams.value.push(team); 
+  }
+  await fetchAktivitas();
+};
+
+const selectAllTeams = async () => { 
+  selectedTeams.value = [];
+  await fetchAktivitas();
+};
+
+const selectPegawai = (pegawai) => {
+  selectedPegawaiId.value = pegawai.id;
+  searchQuery.value = pegawai.id ? pegawai.namaLengkap : "";
+};
+
 // Watchers
 watch(selectedTeams, async () => {
   await fetchAktivitas();
@@ -327,6 +339,7 @@ watch(mode, () => {
      searchQuery.value = authStore.user?.namaLengkap || '';
      fetchAktivitas(); 
   } else {
+     // Re-apply default filter logic when returning to team mode
      const currentUser = authStore.user;
      if (currentUser) {
         const defaultSelectedTeams = [];
@@ -338,7 +351,7 @@ watch(mode, () => {
                 }
             }
         });
-        if (currentUser.jabatan?.namaJabatan === "Kepala Kantor") {
+        if (currentUser.jabatan?.namaJabatan?.toLowerCase().includes("kepala kantor")) {
              const teamKepala = teams.value.find(t => t.id === 'kepala-kantor-filter');
              if (teamKepala) defaultSelectedTeams.push(teamKepala);
         }

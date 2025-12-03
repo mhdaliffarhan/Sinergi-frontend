@@ -274,13 +274,13 @@
       <div class="flex flex-wrap items-center gap-6">
         <label class="inline-flex items-center cursor-pointer">
           <input type="checkbox" v-model="form.useDateRange" class="sr-only peer">
-          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
           <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Rentang Tanggal</span>
         </label>
 
         <label class="inline-flex items-center cursor-pointer">
           <input type="checkbox" v-model="form.useTime" class="sr-only peer">
-          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
           <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Pakai Jam</span>
         </label>
       </div>
@@ -294,29 +294,27 @@
           <p v-if="errors.tanggalMulai" class="mt-1 text-xs text-red-500">{{ errors.tanggalMulai }}</p>
         </div>
         
-        <transition name="slide-fade">
-          <div v-if="form.useDateRange">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Selesai <span class="text-red-500">*</span></label>
-            <input type="date" v-model="form.tanggalSelesai" :class="{ 'border-red-500': errors.tanggalSelesai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
-            <p v-if="errors.tanggalSelesai" class="mt-1 text-xs text-red-500">{{ errors.tanggalSelesai }}</p>
-          </div>
-        </transition>
+        <!-- Gunakan v-show bukan v-if untuk transisi yang lebih halus di layout, atau v-if tanpa transisi rumit di mobile -->
+        <div v-if="form.useDateRange">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Selesai <span class="text-red-500">*</span></label>
+          <input type="date" v-model="form.tanggalSelesai" :class="{ 'border-red-500': errors.tanggalSelesai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
+          <p v-if="errors.tanggalSelesai" class="mt-1 text-xs text-red-500">{{ errors.tanggalSelesai }}</p>
+        </div>
       </div>
 
-      <transition name="slide-fade">
-        <div v-if="form.useTime" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jam Mulai <span class="text-red-500">*</span></label>
-            <input type="time" v-model="form.jamMulai" :class="{ 'border-red-500': errors.jamMulai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
-            <p v-if="errors.jamMulai" class="mt-1 text-xs text-red-500">{{ errors.jamMulai }}</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jam Selesai <span class="text-red-500">*</span></label>
-            <input type="time" v-model="form.jamSelesai" :class="{ 'border-red-500': errors.jamSelesai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
-            <p v-if="errors.jamSelesai" class="mt-1 text-xs text-red-500">{{ errors.jamSelesai }}</p>
-          </div>
+      <div v-if="form.useTime" class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jam Mulai <span class="text-red-500">*</span></label>
+          <input type="time" v-model="form.jamMulai" :class="{ 'border-red-500': errors.jamMulai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
+          <p v-if="errors.jamMulai" class="mt-1 text-xs text-red-500">{{ errors.jamMulai }}</p>
         </div>
-      </transition>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jam Selesai <span class="text-red-500">*</span></label>
+          <input type="time" v-model="form.jamSelesai" :class="{ 'border-red-500': errors.jamSelesai }" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"/>
+          <p v-if="errors.jamSelesai" class="mt-1 text-xs text-red-500">{{ errors.jamSelesai }}</p>
+        </div>
+      </div>
+      
     </div>
 
     <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
@@ -357,7 +355,26 @@
       </transition-group>
       <p v-if="daftarDokumenWajib.length === 0" class="text-xs text-gray-500 italic mt-2 pl-1">Belum ada dokumen wajib ditambahkan.</p>
     </div>
-
+    <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800/50">
+        <div class="flex items-start gap-3">
+          <div class="flex items-center h-5">
+            <input
+              id="send-whatsapp-akt"
+              v-model="form.sendWhatsapp"
+              type="checkbox"
+              class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+          </div>
+          <div class="ml-2 text-sm">
+            <label for="send-whatsapp-akt" class="font-medium text-gray-900 dark:text-gray-100 select-none cursor-pointer">
+              Kirim Notifikasi WhatsApp
+            </label>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">
+              Kirim pesan WhatsApp ke semua pegawai yang terlibat dalam aktivitas ini.
+            </p>
+          </div>
+        </div>
+    </div>
     <div class="flex justify-end gap-3 pt-4 mt-6 border-t border-gray-200 dark:border-gray-700">
       <button type="button" @click="$emit('close')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors">
         Batal
@@ -409,7 +426,8 @@ const form = reactive({
   tanggalSelesai: '',
   jamMulai: '',
   jamSelesai: '',
-  idTimTerkait: [] // <-- SUDAH DIPERBAIKI JADI camelCase
+  idTimTerkait: [],
+  sendWhatsapp: false
 });
 
 const errors = reactive({
@@ -562,9 +580,8 @@ const handleSubmit = () => {
       jamSelesai: form.jamSelesai === '' ? null : form.jamSelesai,
 
       daftarDokumenWajib: daftarDokumenWajib.value,
-      anggota_aktivitas_ids: selectedMembers.value.map(m => m.id), // Snake case is fine here as it's for backend
-      
-      // Mapping idTimTerkait (camelCase frontend) to idTimTerkait (snake_case backend schema)
+      anggota_aktivitas_ids: selectedMembers.value.map(m => m.id),
+      sendWhatsapp: form.sendWhatsapp,
       idTimTerkait: form.idTimTerkait, // <-- MAP DI SINI
 
       melibatkanKepala: false 
@@ -609,7 +626,7 @@ watch(() => props.initialData, (newData) => {
   Object.assign(form, {
     namaAktivitas: '', deskripsi: '', teamId: '', projectId: '',
     useDateRange: false, useTime: false, tanggalMulai: '', tanggalSelesai: '', 
-    jamMulai: '', jamSelesai: '', idTimTerkait: [] // <-- Init camelCase
+    jamMulai: '', jamSelesai: '', idTimTerkait: []
   });
   daftarDokumenWajib.value = [];
   selectedMembers.value = [];
@@ -642,6 +659,10 @@ watch(() => props.initialData, (newData) => {
     
     daftarDokumenWajib.value = newData.daftarDokumenWajib ? newData.daftarDokumenWajib.map(d => d.namaDokumen) : [];
     selectedMembers.value = newData.users ? [...newData.users] : [];
+
+    form.sendWhatsapp = false;
+  } else {
+    form.sendWhatsapp = false;
   }
 }, { immediate: true });
 </script>

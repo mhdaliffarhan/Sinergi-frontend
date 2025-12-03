@@ -103,7 +103,7 @@
     />
 
     <ModalWrapper :show="isModalOpen" @close="closeModal" title="Buat Tim Baru">
-      <FormTim @close="closeModal" @submit="handleTeamSubmit" />
+      <FormTim :user-list="allUsers" @close="closeModal" @submit="handleTeamSubmit" />
     </ModalWrapper>
   </div>
 </template>
@@ -134,6 +134,7 @@ let debounceTimer = null;
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const totalTeams = ref(0);
+const allUsers = ref([]);
 
 const updateViewMode = () => {
   if (window.innerWidth < 768) {
@@ -147,15 +148,20 @@ const fetchTeams = async (query = searchQuery.value) => {
   isLoading.value = true;
   const skip = (currentPage.value - 1) * itemsPerPage.value;
   try {
-    const response = await axios.get(`${baseURL}/api/teams`, {
-      params: { 
-        q: query,
-        skip: skip,
-        limit: itemsPerPage.value 
-      }
-    });
-    teams.value = response.data.items; 
-    totalTeams.value = response.data.total;
+    const [teamsRes, usersRes] = await Promise.all([
+      axios.get(`${baseURL}/api/teams`, {
+        params: { 
+          q: searchQuery.value,
+          skip: skip, 
+          limit: itemsPerPage.value 
+        }
+      }),
+      axios.get(`${baseURL}/api/users`, { params: { limit: 10000 } }) 
+    ]);
+
+    teams.value = teamsRes.data.items;
+    totalTeams.value = teamsRes.data.total;
+    allUsers.value = usersRes.data.items;
   } catch (error) {
     toast.error("Gagal memuat data tim.");
     console.error("Gagal mengambil data tim:", error);

@@ -1,6 +1,7 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6 text-gray-800 dark:text-gray-200">
     
+    <!-- BAGIAN 1: IDENTITAS TIM -->
     <div class="space-y-4">
       <div class="relative">
         <label for="nama-tim" class="block text-sm font-medium mb-1 transition-colors" :class="errors.namaTim ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
@@ -42,36 +43,79 @@
 
     <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
 
+    <!-- BAGIAN 2: ANGGOTA TIM -->
     <div class="grid grid-cols-1 gap-6">
       
+      <!-- DROPDOWN KETUA TIM (SINGLE SELECT DENGAN SEARCH) -->
       <div>
-        <label for="ketua-tim" class="block text-sm font-medium mb-1 transition-colors" :class="errors.ketuaTimId ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
+        <label class="block text-sm font-medium mb-1 transition-colors" :class="errors.ketuaTimId ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
           Ketua Tim <span class="text-red-500">*</span>
         </label>
-        <div class="relative">
-          <select 
-            id="ketua-tim" 
-            v-model="form.ketuaTimId"
-            class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm appearance-none transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer"
+        
+        <div class="relative group">
+          <!-- Trigger Box -->
+          <div 
+            class="min-h-[42px] w-full px-4 py-2.5 border rounded-lg bg-white dark:bg-gray-800 cursor-pointer flex items-center justify-between transition-all duration-200 group-focus-within:ring-2 group-focus-within:ring-blue-500/50 group-focus-within:border-blue-500"
             :class="errors.ketuaTimId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'"
+            @click="isLeaderDropdownOpen = !isLeaderDropdownOpen"
           >
-            <option :value="null">-- Pilih Ketua Tim --</option>
-            <option v-for="user in userList" :key="user.id" :value="user.id">
-              {{ user.namaLengkap }}
-            </option>
-          </select>
-          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <span :class="form.ketuaTimId ? 'text-gray-900 dark:text-white' : 'text-gray-400'">
+              {{ selectedLeaderName }}
+            </span>
+            <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" :class="{'rotate-180': isLeaderDropdownOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </div>
+
+          <!-- Dropdown Menu -->
+          <transition name="dropdown">
+            <div v-if="isLeaderDropdownOpen" class="absolute z-40 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-hidden flex flex-col">
+              <!-- Search Input -->
+              <div class="p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <input 
+                  type="text" 
+                  v-model="leaderSearchQuery" 
+                  placeholder="Cari nama ketua..." 
+                  class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:border-blue-500 transition-colors" 
+                  @click.stop
+                  ref="leaderSearchInput"
+                />
+              </div>
+              
+              <!-- List -->
+              <ul class="overflow-y-auto flex-1 py-1 custom-scrollbar">
+                <li 
+                  v-for="user in filteredUsersForLeader" 
+                  :key="user.id" 
+                  @click="selectLeader(user)" 
+                  class="px-4 py-2.5 cursor-pointer text-sm flex justify-between items-center transition-colors border-l-4 border-transparent"
+                  :class="form.ketuaTimId === user.id
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-l-blue-500' 
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                >
+                  <span>{{ user.namaLengkap }}</span>
+                  <span v-if="form.ketuaTimId === user.id" class="text-blue-600 dark:text-blue-400">✓</span>
+                </li>
+              </ul>
+              
+              <!-- Empty State -->
+              <div v-if="filteredUsersForLeader.length === 0" class="p-4 text-center text-gray-400 text-sm">
+                Pengguna tidak ditemukan.
+              </div>
+            </div>
+          </transition>
+
+          <!-- Overlay click outside -->
+          <div v-if="isLeaderDropdownOpen" class="fixed inset-0 z-30" @click="isLeaderDropdownOpen = false"></div>
         </div>
+
         <transition name="slide-fade">
           <p v-if="errors.ketuaTimId" class="mt-1 text-xs text-red-500">{{ errors.ketuaTimId }}</p>
         </transition>
       </div>
 
+      <!-- DROPDOWN OPERATOR TIM (MULTI SELECT) -->
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Operator Tim (Opsional)
+          Operator Tim
           <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
             {{ selectedOperators.length }} dipilih
           </span>
@@ -80,7 +124,7 @@
         <div class="relative group">
           <div 
             class="min-h-[42px] w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 cursor-pointer transition-all duration-200 group-focus-within:ring-2 group-focus-within:ring-indigo-500/50 group-focus-within:border-indigo-500 border-gray-300 dark:border-gray-600"
-            @click="isDropdownOpen = !isDropdownOpen"
+            @click="isOperatorDropdownOpen = !isOperatorDropdownOpen"
           >
             <div v-if="selectedOperators.length === 0" class="text-gray-400 text-sm py-0.5">Pilih satu atau lebih operator...</div>
             <div v-else class="flex flex-wrap gap-2">
@@ -98,17 +142,17 @@
               </transition-group>
             </div>
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-              <svg class="w-5 h-5 transition-transform duration-200" :class="{'rotate-180': isDropdownOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              <svg class="w-5 h-5 transition-transform duration-200" :class="{'rotate-180': isOperatorDropdownOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
           <transition name="dropdown">
-            <div v-if="isDropdownOpen" class="absolute z-30 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-hidden flex flex-col">
+            <div v-if="isOperatorDropdownOpen" class="absolute z-30 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-hidden flex flex-col">
               <div class="p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                 <input 
                   type="text" 
-                  v-model="searchQuery" 
-                  placeholder="Cari nama..." 
+                  v-model="operatorSearchQuery" 
+                  placeholder="Cari nama operator..." 
                   class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:border-indigo-500 transition-colors" 
                   @click.stop
                 />
@@ -136,7 +180,7 @@
             </div>
           </transition>
           
-          <div v-if="isDropdownOpen" class="fixed inset-0 z-20" @click="isDropdownOpen = false"></div>
+          <div v-if="isOperatorDropdownOpen" class="fixed inset-0 z-20" @click="isOperatorDropdownOpen = false"></div>
         </div>
       </div>
 
@@ -144,9 +188,10 @@
 
     <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
 
+    <!-- BAGIAN 3: TANGGAL VALIDITAS -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label for="valid-from" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Periode Aktif Mulai</label>
+        <label for="valid-from" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Periode Aktif Mulai<span class="text-red-500">*</span></label>
         <input 
           type="date" 
           id="valid-from" 
@@ -157,7 +202,7 @@
         <p v-if="errors.validFrom" class="mt-1 text-xs text-red-500">{{ errors.validFrom }}</p>
       </div>
       <div>
-        <label for="valid-until" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Periode Aktif Selesai</label>
+        <label for="valid-until" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Periode Aktif Selesai<span class="text-red-500">*</span></label>
         <input 
           type="date" 
           id="valid-until" 
@@ -181,7 +226,7 @@
 </template>
 
 <script setup>
-import { reactive, watchEffect, ref, computed } from 'vue';
+import { reactive, watchEffect, ref, computed, nextTick } from 'vue';
 
 const props = defineProps({
   initialData: { type: Object, default: null },
@@ -189,6 +234,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'submit']);
+
+// Form State
 const form = reactive({
   namaTim: '',
   validFrom: null,
@@ -205,22 +252,54 @@ const errors = reactive({
   validFrom: null,
 });
 
-const isDropdownOpen = ref(false);
-const searchQuery = ref('');
+// -- LEADER DROPDOWN STATE --
+const isLeaderDropdownOpen = ref(false);
+const leaderSearchQuery = ref('');
+const leaderSearchInput = ref(null);
+
+// -- OPERATOR DROPDOWN STATE --
+const isOperatorDropdownOpen = ref(false);
+const operatorSearchQuery = ref('');
 const selectedOperators = ref([]);
 
-// Filter user untuk dropdown operator
+// --- COMPUTED: Filter Ketua Tim ---
+const filteredUsersForLeader = computed(() => {
+  const query = leaderSearchQuery.value.toLowerCase();
+  return props.userList.filter(user => 
+    user.namaLengkap.toLowerCase().includes(query)
+  );
+});
+
+// Helper untuk menampilkan nama ketua terpilih saat dropdown tutup
+const selectedLeaderName = computed(() => {
+  if (!form.ketuaTimId) return '-- Pilih Ketua Tim --';
+  const user = props.userList.find(u => u.id === form.ketuaTimId);
+  return user ? user.namaLengkap : '-- Pilih Ketua Tim --';
+});
+
+// --- COMPUTED: Filter Operator ---
 const filteredUsersForOperator = computed(() => {
-  const query = searchQuery.value.toLowerCase();
-  // Filter juga agar ketua tim tidak muncul di pilihan operator
+  const query = operatorSearchQuery.value.toLowerCase();
+  // Filter: Jangan tampilkan user yang sudah jadi Ketua Tim
   const availableUsers = props.userList.filter(user => user.id !== form.ketuaTimId);
+  
   if (!query) return availableUsers;
   return availableUsers.filter(user =>
     user.namaLengkap.toLowerCase().includes(query)
   );
 });
 
-// Fungsi-fungsi untuk mengelola multi-select
+// --- METHODS: Leader Dropdown ---
+const selectLeader = (user) => {
+  form.ketuaTimId = user.id;
+  isLeaderDropdownOpen.value = false;
+  // Jika user yang dipilih sebelumnya ada di operator, hapus dari operator
+  if (isOperatorSelected(user.id)) {
+    removeOperator(user.id);
+  }
+};
+
+// --- METHODS: Operator Dropdown ---
 const isOperatorSelected = (id) => selectedOperators.value.some(op => op.id === id);
 const selectOperator = (user) => {
   if (!isOperatorSelected(user.id)) {
@@ -233,7 +312,9 @@ const removeOperator = (id) => {
   selectedOperators.value = selectedOperators.value.filter(op => op.id !== id);
 };
 
+// Watchers
 watchEffect(() => {
+  // 1. Reset Form Defaults
   Object.assign(form, {
     namaTim: '', 
     validFrom: null, 
@@ -245,6 +326,7 @@ watchEffect(() => {
   selectedOperators.value = [];
   Object.keys(errors).forEach(key => errors[key] = null);
 
+  // 2. Populate jika ada initialData
   if (props.initialData) {
     form.namaTim = props.initialData.namaTim || '';
     form.validFrom = props.initialData.validFrom?.split('T')[0] || null;
@@ -252,9 +334,7 @@ watchEffect(() => {
     form.ketuaTimId = props.initialData.ketuaTim?.id || null;
     form.warna = props.initialData.warna || '#3b82f6';
 
-    // Isi selectedOperators JIKA data operators ada di initialData
     if (props.initialData.operators && Array.isArray(props.initialData.operators)) {
-        // Pastikan kita membuat salinan array untuk reaktivitas
         selectedOperators.value = [...props.initialData.operators];
     }
   }
@@ -302,56 +382,22 @@ const handleSubmit = () => {
 
 <style scoped>
 /* Transitions */
-.slide-fade-enter-active {
-  transition: all 0.3s ease-out;
-}
-.slide-fade-leave-active {
-  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
-}
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
-}
+.slide-fade-enter-active { transition: all 0.3s ease-out; }
+.slide-fade-leave-active { transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1); }
+.slide-fade-enter-from, .slide-fade-leave-to { transform: translateY(-10px); opacity: 0; }
 
-.dropdown-enter-active, .dropdown-leave-active {
-  transition: all 0.2s ease;
-}
-.dropdown-enter-from, .dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-5px) scale(0.95);
-}
+.dropdown-enter-active, .dropdown-leave-active { transition: all 0.2s ease; }
+.dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(-5px) scale(0.95); }
 
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.4s ease;
-}
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
+.list-enter-active, .list-leave-active { transition: all 0.4s ease; }
+.list-enter-from, .list-leave-to { opacity: 0; transform: translateX(20px); }
 
-.scale-enter-active {
-  transition: all 0.2s ease;
-}
-.scale-enter-from {
-  opacity: 0;
-  transform: scale(0);
-}
+.scale-enter-active { transition: all 0.2s ease; }
+.scale-enter-from { opacity: 0; transform: scale(0); }
 
 /* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 20px;
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #4b5563;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4b5563; }
 </style>

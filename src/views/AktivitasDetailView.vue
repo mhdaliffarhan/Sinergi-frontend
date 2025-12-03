@@ -26,7 +26,7 @@
         </div>
 
         <!-- CONTENT CARD -->
-        <div v-else-if="aktivitas" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 relative overflow-hidden animate-fade-in-up">
+        <div v-else-if="aktivitas" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 relative animate-fade-in-up">
           
           <!-- Decorative Top Bar -->
           <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500"></div>
@@ -68,7 +68,7 @@
                   </MenuButton>
 
                   <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95 -translate-y-2" enter-to-class="transform opacity-100 scale-100 translate-y-0" leave-active-class="transition ease-in duration-150" leave-from-class="transform opacity-100 scale-100 translate-y-0" leave-to-class="transform opacity-0 scale-95 -translate-y-2">
-                    <MenuItems class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 focus:outline-none divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <MenuItems class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 focus:outline-none divide-y divide-gray-100 dark:divide-gray-700 border border-gray-200 dark:border-gray-700">
                       <div class="py-1">
                         <MenuItem v-slot="{ active }">
                           <button @click="handleDownloadAll" :class="[active ? 'bg-gray-50 dark:bg-gray-700/50' : '', 'group flex w-full items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 transition-colors']">

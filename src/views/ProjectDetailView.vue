@@ -85,7 +85,7 @@
                             <span class="mr-3 text-lg opacity-80">✏️</span> Edit Project
                           </button>
                         </MenuItem>
-                        <MenuItem v-slot="{ active }" v-if="isKetuaTim">
+                        <MenuItem v-slot="{ active }" v-if="isKetuaTim || authStore.isSuperAdmin">
                           <button @click="confirmDeleteProject" :class="[active ? 'bg-red-50 dark:bg-red-900/20' : '', 'group flex w-full items-center px-4 py-2.5 text-sm text-red-600 dark:text-red-400 font-medium transition-colors']">
                             <span class="mr-3 text-lg opacity-80">🗑️</span> Hapus
                           </button>

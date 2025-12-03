@@ -137,7 +137,8 @@
                  {{ getFirstName(authStore.user?.namaLengkap) }}
                </p>
                <p class="text-[10px] text-gray-500 dark:text-gray-400 leading-none">
-                 {{ authStore.user?.sistemRole?.namaRole || 'User' }}
+                 {{ !authStore.user?.sistemRole?.namaRole || authStore.user.sistemRole.namaRole === 'Bukan Admin'
+                      ? 'User': authStore.user.sistemRole.namaRole }}
                </p>
             </div>
             <svg class="hidden sm:block w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>

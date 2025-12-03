@@ -331,7 +331,7 @@ const handlePageChange = (newPage) => {
 
 const fetchTeams = async () => {
   try {
-    const response = await axios.get(`${baseURL}/api/teams/active`);
+    const response = await axios.get(`${baseURL}/api/teams/active`, { params: { limit : 100 }});
     const fetchedTeams = response.data.items || []; 
     teamList.value = fetchedTeams.map(team => ({
         id: team.id,

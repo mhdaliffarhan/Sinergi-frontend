@@ -164,6 +164,7 @@ const fetchTeams = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/teams/active`);
     teamList.value = response.data.items;
+    console.log('Ini Tim List : ', teamList);
   } catch (error) {
     toast.error("Gagal memuat daftar tim.");
     console.error(error);
