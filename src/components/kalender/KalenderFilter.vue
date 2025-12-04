@@ -2,7 +2,7 @@
   <!-- STICKY HEADER CONTROL PANEL -->
   <div 
     class="sticky top-0 z-30 transition-all duration-500 ease-in-out"
-    :class="isScrolled ? 'pt-0' : 'pt-4 px-4'"
+    
   >
     <div 
       class="border-b transition-all duration-500 ease-in-out"

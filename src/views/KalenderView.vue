@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-900 transition-colors duration-300">
+  <div class="min-h-screen transition-colors duration-300">
     
     <!-- Child Component: Header & Filter -->
     <KalenderFilter
@@ -18,7 +18,7 @@
     />
 
     <!-- MAIN CONTENT AREA -->
-    <div class="max-w-7xl mx-auto px-4 pb-10 mt-6">
+    <div class="max-w-7xl mx-auto pb-10 mt-6">
       
       <!-- LOADING STATE -->
       <transition name="fade" mode="out-in">

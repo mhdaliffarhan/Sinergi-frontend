@@ -1,6 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950 p-4 sm:pt-6 font-sans transition-colors duration-300 relative overflow-hidden">
-    
+  <div>
     <!-- BACKGROUND DECORATIONS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div class="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl opacity-60 dark:opacity-20"></div>
@@ -51,9 +50,7 @@
       <!-- LIST CONTAINER -->
       <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 overflow-hidden relative min-h-[400px]">
         
-        <!-- Decorative Top -->
-        <div class="h-1.5 bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500"></div>
-
+        
         <div class="p-2 sm:p-4">
           
           <!-- LOADING -->

@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950 p-4 sm:pt-6 font-sans transition-colors duration-300 relative overflow-hidden">
+  <div >
     
-    <!-- BACKGROUND DECORATIONS (Standardized for All Pages) -->
+    <!-- BACKGROUND DECORATIONS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl opacity-60 dark:opacity-20"></div>
         <div class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-green-500/10 rounded-full blur-3xl opacity-60 dark:opacity-20"></div>
@@ -26,12 +26,9 @@
         </div>
 
         <!-- CONTENT CARD -->
-        <div v-else-if="aktivitas" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 relative animate-fade-in-up">
+        <div v-else-if="aktivitas" class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 relative animate-fade-in-up">
           
-          <!-- Decorative Top Bar -->
-          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500"></div>
-
-          <div class="p-6 sm:p-8 md:p-10 relative z-10">
+          <div class="p-4 sm:p-8 md:p-10 relative z-10">
             
             <!-- HEADER SECTION -->
             <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-8 mb-10">
@@ -60,14 +57,14 @@
               </div>
 
               <!-- Action Button (Menu) -->
-              <div class="flex-shrink-0 relative z-20">
-                <Menu as="div" class="relative inline-block text-left">
-                  <MenuButton class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:shadow-md active:scale-95">
-                    <span>Tindakan</span>
-                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
-                  </MenuButton>
+              <div class="flex-shrink-0 w-full md:w-auto">
+              <Menu as="div" class="relative inline-block text-left w-full md:w-auto">
+              <MenuButton class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/50 hover:shadow-md">
+                  <span>Tindakan</span>
+                  <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                </MenuButton>
 
-                  <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95 -translate-y-2" enter-to-class="transform opacity-100 scale-100 translate-y-0" leave-active-class="transition ease-in duration-150" leave-from-class="transform opacity-100 scale-100 translate-y-0" leave-to-class="transform opacity-0 scale-95 -translate-y-2">
+                <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95 -translate-y-2" enter-to-class="transform opacity-100 scale-100 translate-y-0" leave-active-class="transition ease-in duration-150" leave-from-class="transform opacity-100 scale-100 translate-y-0" leave-to-class="transform opacity-0 scale-95 -translate-y-2">
                     <MenuItems class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 focus:outline-none divide-y divide-gray-100 dark:divide-gray-700 border border-gray-200 dark:border-gray-700">
                       <div class="py-1">
                         <MenuItem v-slot="{ active }">
@@ -95,8 +92,8 @@
                       </div>
                     </MenuItems>
                   </transition>
-                </Menu>
-              </div>
+              </Menu>
+            </div>
             </div>
 
             <!-- INFO GRID (WAKTU - TIM - PROJECT) -->
@@ -115,7 +112,7 @@
                     </span>
                     <p class="text-xs font-bold uppercase tracking-wider text-yellow-800/70 dark:text-yellow-200/70">Waktu</p>
                   </div>
-                  <p class="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">
+                  <p class="font-bold text-gray-900 dark:text-gray-100 text-base sm:text-lg leading-tight">
                     {{ formattedWaktuPelaksanaan.tanggal }}
                   </p>
                   <p v-if="formattedWaktuPelaksanaan.waktu" class="mt-1 text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
@@ -138,7 +135,7 @@
                       </span>
                       <p class="text-xs font-bold uppercase tracking-wider text-blue-800/70 dark:text-blue-200/70">Penyelenggara</p>
                     </div>
-                    <router-link :to="{ name: 'team-detail', params: { id: aktivitas.team?.id } }" class="font-bold text-gray-900 dark:text-gray-100 text-lg hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    <router-link :to="{ name: 'team-detail', params: { id: aktivitas.team?.id } }" class="font-bold text-gray-900 dark:text-gray-100 text-base sm:text-lg hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                       {{ aktivitas.team?.namaTim || 'Tidak ada tim' }}
                     </router-link>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ketua: {{ aktivitas.team?.ketuaTim?.namaLengkap || '-' }}</p>
@@ -175,7 +172,7 @@
                     </span>
                     <p class="text-xs font-bold uppercase tracking-wider text-green-800/70 dark:text-green-200/70">Proyek Induk</p>
                   </div>
-                  <router-link :to="{ name: 'project-detail', params: { id: aktivitas.project?.id } }" class="font-bold text-gray-900 dark:text-gray-100 text-lg hover:text-green-600 dark:hover:text-green-400 transition-colors">
+                  <router-link :to="{ name: 'project-detail', params: { id: aktivitas.project?.id } }" class="font-bold text-gray-900 dark:text-gray-100 text-base sm:text-lg hover:text-green-600 dark:hover:text-green-400 transition-colors">
                     {{ aktivitas.project?.namaProject || 'Non-Proyek' }}
                   </router-link>
                   <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -275,16 +272,16 @@
               </div>
               <p v-else class="text-sm text-gray-400 italic">Belum ada pegawai yang ditambahkan.</p>
             </div>
-            
+
             <div class="w-full h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent my-10"></div>
 
-            <!-- DOCUMENTS SECTION (2 Col) -->
+            <!-- DOCUMENTS SECTION -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
-              <!-- LEFT COL: Upload & Checklist -->
+              <!-- LEFT COL -->
               <div class="lg:col-span-2 space-y-8">
                 
-                <!-- Main Upload Button -->
+                <!-- Upload Button -->
                 <div v-if="isAnggotaTim" class="relative group transform transition-all duration-300 hover:-translate-y-1 active:scale-[0.99]">
                    <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
                    <button 
@@ -301,7 +298,7 @@
                   </button>
                 </div>
                 
-                <!-- Checklist Header -->
+                <!-- Checklist -->
                 <div>
                   <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
@@ -348,6 +345,7 @@
                   <span class="text-2xl">📂</span> File Lainnya
                 </h3>
 
+                <!-- List file lainnya here (omitted for brevity as structure is same) -->
                 <div v-if="Object.keys(groupedOtherDocuments).length > 0" class="space-y-6">
                   <div v-for="(files, keterangan) in groupedOtherDocuments" :key="keterangan" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                     <div class="bg-gray-50/80 dark:bg-gray-700/40 px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
@@ -386,11 +384,11 @@
                     </div>
                   </div>
                 </div>
-
                 <div v-else class="text-center py-10 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700">
                    <span class="text-4xl opacity-30 mb-2 block grayscale">📂</span>
                    <p class="text-gray-400 dark:text-gray-500 text-sm">Belum ada file pendukung.</p>
                 </div>
+
               </div>
 
             </div>
@@ -398,7 +396,7 @@
         </div>
       </transition>
 
-      <!-- MODALS -->
+      <!-- MODALS (Same structure) -->
       <FilePreviewModal :show="isPreviewModalOpen" :file-url="fileToPreview.url" :file-name="fileToPreview.name" :file-type="fileToPreview.type" @close="closePreviewModal" />
       
       <ModalWrapper :show="isUnifiedModalOpen" @close="isUnifiedModalOpen = false" title="Tambah Dokumen / Bukti Dukung">
@@ -459,7 +457,6 @@ const activeMemberTab = ref('summary');
 const aktivitas = ref(null);
 const isLoading = ref(true);
 const breadcrumbItems = ref([
-  { text: 'Dashboard', to: '/dashboard' },
   { text: 'Daftar Aktivitas', to: '/aktivitas/daftar' },
   { text: 'Project', to: ''},
   { text: 'Detail Aktivitas' }
@@ -571,11 +568,11 @@ const fetchDetailAktivitas = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/aktivitas/${aktivitasId}`);
     aktivitas.value = response.data;
-    breadcrumbItems.value[2] = {
+    breadcrumbItems.value[1] = {
       text: aktivitas.value.project?.namaProject || 'Proyek',
       to: aktivitas.value.project ? `/project/detail/${aktivitas.value.project.id}` : '#'
     };
-    breadcrumbItems.value[3].text = aktivitas.value?.namaAktivitas ?? 'Detail Aktivitas';
+    breadcrumbItems.value[2].text = aktivitas.value?.namaAktivitas ?? 'Detail Aktivitas';
   } catch (error) {
     toast.error("Gagal memuat detail aktivitas.");
   } finally {

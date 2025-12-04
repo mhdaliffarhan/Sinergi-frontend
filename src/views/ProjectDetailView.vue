@@ -1,6 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950 p-4 sm:pt-6 font-sans transition-colors duration-300 relative overflow-hidden">
-    
+  <div>
     <!-- BACKGROUND DECORATIONS (Standardized) -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-green-500/10 rounded-full blur-3xl opacity-60 dark:opacity-20"></div>
@@ -27,11 +26,8 @@
 
         <!-- CONTENT CARD -->
         <div v-else-if="project" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 relative overflow-hidden animate-fade-in-up">
-          
-          <!-- Decorative Top Bar -->
-          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-green-500 to-yellow-500"></div>
-
-          <div class="p-6 sm:p-8 md:p-10 relative z-10">
+           
+          <div class="p-4 sm:p-8 md:p-10 relative z-10">
             
             <!-- HEADER SECTION -->
             <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-8 mb-10">
@@ -63,10 +59,10 @@
               </div>
 
               <!-- Action Button (Menu) -->
-              <div class="flex-shrink-0 relative z-20">
-                <Menu as="div" class="relative inline-block text-left">
-                  <MenuButton class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-green-500/50 hover:shadow-md active:scale-95">
-                    <span>Tindakan</span>
+              <div class="flex-shrink-0 w-full md:w-auto">
+                <Menu as="div" class="relative inline-block text-left w-full md:w-auto">
+                  <MenuButton class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/50 hover:shadow-md">
+                  <span>Tindakan</span>
                     <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
                   </MenuButton>
 
@@ -433,7 +429,6 @@ const user = computed(() => authStore.user);
 const project = ref(null);
 const isLoading = ref(true);
 const breadcrumbItems = ref([
-  { text: 'Dashboard', to: '/dashboard' },
   { text: 'Daftar Project', to: '/project' },
   { text: 'Detail Project' }
 ]);
@@ -572,7 +567,7 @@ const fetchDetailProject = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/projects/${projectId}`);
     project.value = response.data;
-    breadcrumbItems.value[2].text = project.value?.namaProject ?? 'Detail Project';
+    breadcrumbItems.value[1].text = project.value?.namaProject ?? 'Detail Project';
   } catch (error) {
     toast.error("Gagal memuat detail Project.");
   } finally {

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen p-4 sm:p-8 font-sans transition-colors duration-300 relative overflow-hidden">
+  <div class="min-h-screenfont-sans transition-colors duration-300">
     
     <!-- BACKGROUND DECORATIONS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -10,16 +10,16 @@
     <div class="relative z-10 max-w-7xl mx-auto">
       
       <!-- HEADER SECTION -->
-      <div class="mb-10 flex flex-col md:flex-row md:justify-between gap-6">
+      <div class="mb-8 sm:mb-10 flex flex-col md:flex-row md:justify-between gap-6">
         
         <!-- KIRI: Sapaan & Tombol Action -->
         <div class="flex flex-col items-start gap-4">
           <!-- Sapaan -->
           <div>
-            <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-              <span class="text-4xl sm:text-5xl animate-bounce-slow">👋</span> 
+            <h1 class="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+              <span class="text-3xl sm:text-5xl animate-bounce-slow">👋</span> 
               <div class="flex flex-col">
-                <span class="text-lg sm:text-xl font-medium text-gray-500 dark:text-gray-400">Selamat {{ greeting }},</span>
+                <span class="text-base sm:text-xl font-medium text-gray-500 dark:text-gray-400">Selamat {{ greeting }},</span>
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600 leading-tight">
                   {{ username }}
                 </span>
@@ -29,7 +29,7 @@
 
           <!-- Tombol Buat Aktivitas -->
           <button 
-            @click="openModal" 
+            @click="openModalAktivitas" 
             class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             <span class="text-xl font-bold">+</span>
@@ -142,7 +142,6 @@
               <!-- Content untuk Pegawai/Ketua Tim -->
               <div v-else class="space-y-8">
                  <div v-if="isKetuaTim" class="h-[500px]">
-                    <!-- Pass selectedTeamId ke komponen ini jika perlu filter spesifik -->
                     <DashboardTeamTimeline :team-id="selectedTeamId" />
                  </div>
 
@@ -194,7 +193,6 @@ import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
 
-// Import Widgets Dashboard
 import DashboardStats from '@/components/dashboard/DashboardStats.vue';
 import DashboardTodoList from '@/components/dashboard/DashboardTodoList.vue';
 import DashboardAgenda from '@/components/dashboard/DashboardAgenda.vue';
@@ -202,7 +200,6 @@ import DashboardChart from '@/components/dashboard/DashboardChart.vue';
 import DashboardTimeline from '@/components/dashboard/DashboardTimeline.vue';
 import DashboardTeamTimeline from '@/components/dashboard/DashboardTeamTimeline.vue';
 
-// Import Komponen Form
 import ModalWrapper from '@/components/ModalWrapper.vue';
 import FormAktivitas from '@/components/aktivitas/FormAktivitas.vue';
 
@@ -217,18 +214,15 @@ const agendaList = ref([]);
 const chartData = ref([]);
 const allTeams = ref([]);
 
-// State untuk Form Aktivitas
 const isModalOpen = ref(false);
 const teamList = ref([]);
 const projectList = ref([]);
 const pegawaiList = ref([]);
 const teamMembers = ref([]); 
 
-// --- FILTER MULTI TIM (KETUA) ---
-const managedTeams = ref([]); // List tim yg diketuai
-const selectedTeamId = ref(null); // ID tim yg dipilih di dropdown
+const managedTeams = ref([]);
+const selectedTeamId = ref(null);
 
-// --- ROLE LOGIC ---
 const isKepala = computed(() => {
   const jabName = authStore.user?.jabatan?.namaJabatan;
   return (jabName && jabName.toLowerCase().includes('kepala')) ;
@@ -244,7 +238,6 @@ const roleLabel = computed(() => {
   return 'Dashboard Pegawai';
 });
 
-// UI Helpers
 const username = computed(() => authStore.user?.namaLengkap || 'User');
 
 const greeting = computed(() => {
@@ -259,7 +252,6 @@ const currentDate = computed(() => {
   return new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 });
 
-// --- FETCH DASHBOARD DATA ---
 const fetchChartData = async (months = 6) => {
   if (!isKepala.value) return;
   chartData.value = null; 
@@ -269,7 +261,6 @@ const fetchChartData = async (months = 6) => {
       });
       chartData.value = resChart.data;
   } catch (e) {
-      console.warn("Gagal memuat grafik", e);
       chartData.value = []; 
   }
 };
@@ -277,19 +268,15 @@ const fetchChartData = async (months = 6) => {
 const fetchDashboardData = async () => {
   isLoading.value = true;
   try {
-    // 0. Siapkan parameter filter tim (jika ada)
     const params = {};
     if (isKetuaTim.value && selectedTeamId.value) {
         params.team_id = selectedTeamId.value;
     }
 
-    // 1. Stats (Semua Role - Support Filter)
     const resStats = await axios.get(`${baseURL}/api/dashboard/stats`, { params });
     stats.value = resStats.data;
 
-    // 2. Logic Percabangan Data
     if (!isKepala.value) {
-        // Todo List (Bisa difilter by team jika backend support, kirim params)
         const resTodo = await axios.get(`${baseURL}/api/dashboard/todo`, { params });
         todoList.value = resTodo.data;
     } else {
@@ -298,39 +285,25 @@ const fetchDashboardData = async () => {
         allTeams.value = resTeams.data.items || [];
     }
 
-    // 3. Agenda (Semua Role - Support Filter)
-    // const scope = isKepala.value ? 'all' : 'me';
     const scope = 'me';
-    // Gabungkan params tim dengan params limit & scope
     const agendaParams = { ...params, limit: 2000, user_scope: scope };
     
-    // Jika ketua tim memilih filter, kita mungkin ingin melihat agenda TIM tersebut (bukan cuma 'me')
-    if (isKetuaTim.value && selectedTeamId.value) {
-        // Opsional: ubah scope atau backend harus handle logic 'team_id'
-        // Jika backend mendukung filter team_id pada endpoint /aktivitas:
-        // agendaParams.team_id = selectedTeamId.value; 
-    }
-
     const resAgenda = await axios.get(`${baseURL}/api/aktivitas`, {
         params: agendaParams
     });
     agendaList.value = resAgenda.data.items;
 
   } catch (error) {
-    console.error("Dashboard Error:", error);
     toast.error("Gagal memuat data dashboard.");
   } finally {
     isLoading.value = false;
   }
 };
 
-// --- HANDLER CHANGE FILTER ---
 const handleTeamFilterChange = () => {
-    // Refresh data saat dropdown berubah
     fetchDashboardData();
 };
 
-// --- FORM AKTIVITAS LOGIC ---
 const fetchFormData = async () => {
   try {
     const [teamsRes, projectsRes, pegawaiRes] = await Promise.all([
@@ -340,7 +313,6 @@ const fetchFormData = async () => {
     ]);
     
     teamList.value = teamsRes.data.items || [];
-    console.log("Daftar Tim Aktif : ", teamList.value);
     projectList.value = projectsRes.data.items || [];
     pegawaiList.value = pegawaiRes.data.items || [];
     
@@ -349,7 +321,7 @@ const fetchFormData = async () => {
   }
 };
 
-const openModal = () => { 
+const openModalAktivitas = () => { 
   if (teamList.value.length === 0) {
     fetchFormData();
   }
@@ -377,11 +349,8 @@ const handleActivitySubmit = async (formData) => {
 };
 
 onMounted(() => {
-  // Inisialisasi Filter untuk Ketua Tim
   if (isKetuaTim.value && authStore.user?.ketuaTimAktif) {
       managedTeams.value = authStore.user.ketuaTimAktif;
-      // Opsional: Default pilih tim pertama jika hanya ada 1, atau biarkan null (Semua)
-      // if (managedTeams.value.length === 1) selectedTeamId.value = managedTeams.value[0].id;
   }
 
   if (managedTeams.value.length > 0) selectedTeamId.value = managedTeams.value[0].id;
@@ -403,7 +372,6 @@ onMounted(() => {
   animation: bounce 2s infinite;
 }
 
-/* Transisi Fade */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

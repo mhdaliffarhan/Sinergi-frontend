@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950 p-4 sm:pt-6 font-sans transition-colors duration-300 relative overflow-hidden">
+  <div>
     
     <!-- BACKGROUND DECORATIONS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -10,6 +10,10 @@
     <!-- MAIN CONTENT -->
     <div class="relative z-10 max-w-7xl mx-auto pb-20">
       
+      <div class="mb-6">
+        <Breadcrumbs :items="breadcrumbItems" />
+      </div>
+
       <!-- LOADING STATE -->
       <transition name="fade" mode="out-in">
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-32 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-3xl border border-white/20 shadow-sm">
@@ -29,10 +33,7 @@
         <!-- CONTENT CARD -->
         <div v-else class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700 relative overflow-hidden animate-fade-in-up">
           
-          <!-- Decorative Top Bar -->
-          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-
-          <div class="p-6 sm:p-8 md:p-10 relative z-10">
+          <div class="p-4 sm:p-8 md:p-10 relative z-10">
             
             <!-- HEADER SECTION -->
             <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-8 mb-10">
@@ -70,11 +71,11 @@
               </div>
 
               <!-- Action Button (Menu) -->
-              <div class="flex-shrink-0 relative z-20" v-if="isSuperadminOrKetuaTim">
-                <Menu as="div" class="relative inline-block text-left">
-                  <MenuButton class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:shadow-md active:scale-95">
+              <div class="flex-shrink-0 w-full md:w-auto" v-if="isSuperadminOrKetuaTim">
+                <Menu as="div" class="relative inline-block text-left w-full md:w-auto">
+                  <MenuButton class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/50 hover:shadow-md">
                     <span>Kelola Tim</span>
-                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                      <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
                   </MenuButton>
 
                   <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95 -translate-y-2" enter-to-class="transform opacity-100 scale-100 translate-y-0" leave-active-class="transition ease-in duration-150" leave-from-class="transform opacity-100 scale-100 translate-y-0" leave-to-class="transform opacity-0 scale-95 -translate-y-2">
@@ -506,6 +507,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 
+import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import ModalWrapper from '@/components/ModalWrapper.vue';
 import { useAuthStore } from '@/stores/auth';
 import TeamDetailModal from '@/components/admin/TeamDetailModal.vue';
@@ -518,6 +520,11 @@ const authStore = useAuthStore();
 
 const team = ref(null);
 const isLoading = ref(true);
+const breadcrumbItems = ref([
+  { text: 'Daftar Tim', to: '/team' },
+  { text: 'Detail Team' }
+]);
+
 const isEditModalOpen = ref(false);
 const expandedProjects = ref({});
 const allUsers = ref([]);
@@ -559,6 +566,7 @@ const fetchTeamDetails = async () => {
     ]);
     team.value = teamRes.data;
     allUsers.value = usersRes.data.items;
+    breadcrumbItems.value[1].text = team.value?.namaTim?? 'Detail Tim';
   } catch (error) {
     toast.error("Gagal memuat detail tim.");
   } finally {
