@@ -23,12 +23,19 @@
                 class="absolute top-1 bottom-1 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] bg-white dark:bg-gray-600 rounded-lg shadow-[0_2px_4px_rgba(0,0,0,0.1)] border border-gray-200 dark:border-gray-500"
                 :class="{
                   'left-1 w-[calc(33.33%-2.6px)]': true,
-                  'translate-x-0': mode === 'team',
-                  'translate-x-[100%]': mode === 'timeline',
-                  'translate-x-[200%]': mode === 'person'
+                  'translate-x-0': mode === 'person',
+                  'translate-x-[100%]': mode === 'team',
+                  'translate-x-[200%]': mode === 'timeline'
                 }"
               ></div>
-
+            <button
+              @click="$emit('update:mode', 'person')"
+              class="relative z-10 w-1/3 md:w-28 py-1.5 flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors duration-200"
+              :class="mode === 'person' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+            >
+              <span class="text-base">👤</span> <span class="hidden sm:inline">Person</span>
+            </button>
+            
             <button
               @click="$emit('update:mode', 'team')"
               class="relative z-10 w-1/3 md:w-28 py-1.5 flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors duration-200"
@@ -45,13 +52,7 @@
               <span class="text-base">📊</span> <span class="hidden sm:inline">Timeline</span>
             </button>
             
-            <button
-              @click="$emit('update:mode', 'person')"
-              class="relative z-10 w-1/3 md:w-28 py-1.5 flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors duration-200"
-              :class="mode === 'person' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
-            >
-              <span class="text-base">👤</span> <span class="hidden sm:inline">Person</span>
-            </button>
+            
           </div>
 
           <!-- Timeline Controls (Only visible in Timeline Mode) -->

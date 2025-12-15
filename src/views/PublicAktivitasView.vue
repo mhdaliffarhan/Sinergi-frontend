@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 sm:p-8 font-sans transition-colors duration-300 relative">
+  <div  >
     
     <div class="absolute top-4 right-4 sm:top-6 sm:right-8 z-50 flex items-center gap-3">
       <button

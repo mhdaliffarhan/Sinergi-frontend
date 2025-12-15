@@ -27,11 +27,9 @@ app.use(Toast, {
 // Buat fungsi async untuk setup
 async function initializeApp() {
   try {
-    // Coba pulihkan sesi (login) SEBELUM me-mount router atau app
     await authStore.restoreSession();
   } catch (error) {
     console.error("Gagal memulihkan sesi:", error);
-    // Biarkan app lanjut, nanti akan diarahkan ke /login oleh router guard
   }
   
   app.use(router) // Gunakan router SETELAH sesi dipulihkan

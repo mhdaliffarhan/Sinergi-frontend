@@ -83,7 +83,7 @@ const router = useRouter();
 const isModalOpen = ref(false);
 const selectedAktivitas = ref(null);
 const isLoading = ref(true);
-const mode = ref("team");
+const mode = ref("person");
 const selectedTeams = ref([]); 
 const selectedPegawaiId = ref(null);
 const allPegawai = ref([]);
@@ -139,6 +139,8 @@ const fetchInitialData = async () => {
     // Cari User Kepala Kantor (berdasarkan jabatan string mengandung 'Kepala Kantor')
     kepalaKantorUser.value = allPegawai.value.find(p => p.jabatan?.namaJabatan?.toLowerCase().includes("kepala kantor"));
 
+
+
     // Default Filter Logic
     const currentUser = authStore.user;
     if (currentUser) {
@@ -160,7 +162,12 @@ const fetchInitialData = async () => {
             selectedTeams.value = defaultSelectedTeams;
         }
     }
+    mode.value = 'person';
 
+    if (authStore.user) {
+      selectedPegawaiId.value = authStore.user.id;
+      searchQuery.value = authStore.user.namaLengkap;
+    }
   } catch (err) {
     console.error("Gagal mengambil data awal:", err);
     toast.error("Gagal mengambil data tim atau pegawai.");
@@ -330,7 +337,7 @@ watch(selectedTeams, async () => {
   await fetchAktivitas();
 }, { deep: true });
 
-watch(mode, () => {
+watch(mode, async () => {
   selectedTeams.value = [];
   selectedPegawaiId.value = null;
 

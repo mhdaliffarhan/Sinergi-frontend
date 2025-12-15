@@ -30,15 +30,40 @@
           
           <div class="p-4 sm:p-8 md:p-10 relative z-10">
             
+            <!-- PARENT INFO (JIKA ADA) -->
+            <div v-if="aktivitas.parent" class="mb-6 animate-fade-in">
+              <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block">Bagian dari Aktivitas Induk:</span>
+              <router-link :to="{ name: 'aktivitas-detail', params: { id: aktivitas.parent.id } }" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition border border-blue-100 dark:border-blue-800/50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                <span class="font-medium">{{ aktivitas.parent.namaAktivitas }}</span>
+              </router-link>
+            </div>
+
             <!-- HEADER SECTION -->
             <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-8 mb-10">
               <div class="flex-1 space-y-4">
                 
-                <!-- Badges -->
+                <!-- Badges (Detail, Public, Status, Calendar) -->
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50">
                     Detail Aktivitas
                   </span>
+                  
+                  <!-- STATUS BADGE -->
+                  <span 
+                    class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border flex items-center gap-1.5"
+                    :class="getStatusColor(aktivitas.status)"
+                  >
+                    <span class="w-2 h-2 rounded-full" :class="getStatusDotColor(aktivitas.status)"></span>
+                    {{ aktivitas.status || 'Belum Selesai' }}
+                  </span>
+
+                  <!-- CALENDAR VISIBILITY BADGE -->
+                  <span v-if="aktivitas.kalenderView === false" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 flex items-center gap-1" title="Tidak ditampilkan di kalender tim">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.059 10.059 0 013.999-5.325m-3.641-3.641L21 21m-2.458-6.138A10.05 10.05 0 0012 5c-1.39 0-2.733.29-3.953.815"></path></svg>
+                    Hidden di Kalender
+                  </span>
+
                   <span v-if="aktivitas.publicId" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50 flex items-center gap-1">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                     Publik
@@ -57,15 +82,15 @@
               </div>
 
               <!-- Action Button (Menu) -->
-              <div class="flex-shrink-0 w-full md:w-auto">
-              <Menu as="div" class="relative inline-block text-left w-full md:w-auto">
-              <MenuButton class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/50 hover:shadow-md">
-                  <span>Tindakan</span>
-                  <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
-                </MenuButton>
+              <div class="flex-shrink-0 w-full md:w-auto relative z-20">
+                <Menu as="div" class="relative inline-block text-left w-full md:w-auto">
+                  <MenuButton class="inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/50 hover:shadow-md">
+                    <span>Tindakan</span>
+                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                  </MenuButton>
 
-                <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95 -translate-y-2" enter-to-class="transform opacity-100 scale-100 translate-y-0" leave-active-class="transition ease-in duration-150" leave-from-class="transform opacity-100 scale-100 translate-y-0" leave-to-class="transform opacity-0 scale-95 -translate-y-2">
-                    <MenuItems class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 focus:outline-none divide-y divide-gray-100 dark:divide-gray-700 border border-gray-200 dark:border-gray-700">
+                  <transition enter-active-class="transition ease-out duration-200" enter-from-class="transform opacity-0 scale-95 -translate-y-2" enter-to-class="transform opacity-100 scale-100 translate-y-0" leave-active-class="transition ease-in duration-150" leave-from-class="transform opacity-100 scale-100 translate-y-0" leave-to-class="transform opacity-0 scale-95 -translate-y-2">
+                    <MenuItems class="absolute right-0 z-50 mt-2 w-56 max-w-[calc(100vw-2rem)] origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 focus:outline-none divide-y divide-gray-100 dark:divide-gray-700 border border-gray-200 dark:border-gray-700">
                       <div class="py-1">
                         <MenuItem v-slot="{ active }">
                           <button @click="handleDownloadAll" :class="[active ? 'bg-gray-50 dark:bg-gray-700/50' : '', 'group flex w-full items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 transition-colors']">
@@ -92,15 +117,13 @@
                       </div>
                     </MenuItems>
                   </transition>
-              </Menu>
-            </div>
+                </Menu>
+              </div>
             </div>
 
             <!-- INFO GRID (WAKTU - TIM - PROJECT) -->
-            <!-- Design System: Kuning (Waktu), Biru (Tim), Hijau (Project) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              
-              <!-- 1. WAKTU (Yellow/Gold Theme) -->
+              <!-- 1. WAKTU -->
               <div class="group relative overflow-hidden bg-gradient-to-br from-yellow-50 to-amber-100/30 dark:from-yellow-900/20 dark:to-amber-950/30 border border-yellow-200/60 dark:border-yellow-700/30 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                    <svg class="w-20 h-20 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
@@ -122,7 +145,7 @@
                 </div>
               </div>
               
-              <!-- 2. TIM (Blue Theme) -->
+              <!-- 2. TIM -->
               <div class="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100/30 dark:from-blue-900/20 dark:to-indigo-950/30 border border-blue-200/60 dark:border-blue-700/30 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                    <svg class="w-20 h-20 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
@@ -160,7 +183,7 @@
                 </div>
               </div>
 
-              <!-- 3. PROJECT (Green Theme) -->
+              <!-- 3. PROJECT -->
               <div class="group relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-100/30 dark:from-green-900/20 dark:to-emerald-950/30 border border-green-200/60 dark:border-green-700/30 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                    <svg class="w-20 h-20 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"></path><path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.435-.46-7.9-1.308z"></path></svg>
@@ -180,7 +203,40 @@
                   </p>
                 </div>
               </div>
+            </div>
 
+            <!-- [FITUR BARU] SUB-AKTIVITAS / CHILDREN -->
+            <div v-if="aktivitas.children && aktivitas.children.length > 0" class="mb-10 animate-fade-in-up">
+              <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                Sub-Aktivitas ({{ aktivitas.children.length }})
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <router-link 
+                  v-for="child in aktivitas.children" 
+                  :key="child.id"
+                  :to="{ name: 'aktivitas-detail', params: { id: child.id } }"
+                  class="block p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all hover:border-blue-300 dark:hover:border-blue-700 group"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <span 
+                      class="text-[10px] px-2 py-0.5 rounded-full font-bold border"
+                      :class="getStatusColor(child.status)"
+                    >
+                      {{ child.status || 'Belum Selesai' }}
+                    </span>
+                    <span class="text-xs text-gray-400 group-hover:text-blue-500 transition-colors">
+                      Detail &rarr;
+                    </span>
+                  </div>
+                  <h4 class="text-sm font-bold text-gray-800 dark:text-gray-200 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {{ child.namaAktivitas }}
+                  </h4>
+                  <p class="text-xs text-gray-500 mt-1" v-if="child.tanggalMulai">
+                    {{ child.tanggalMulai }}
+                  </p>
+                </router-link>
+              </div>
             </div>
 
             <!-- MEMBERS SECTION -->
@@ -430,7 +486,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { useAuthStore } from '@/stores/auth';
@@ -448,9 +504,7 @@ import UnifiedUploadModal from '@/components/aktivitas/UnifiedUploadModal.vue';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
-const aktivitasId = route.params.id;
-const authStore = useAuthStore();
+const toast = useToast();const authStore = useAuthStore();
 const user = computed(() => authStore.user); 
 const activeMemberTab = ref('summary');
 
@@ -565,8 +619,9 @@ const formattedWaktuPelaksanaan = computed(() => {
 // --- FETCH DATA ---
 const fetchDetailAktivitas = async () => {
   isLoading.value = true;
+  const idToFetch = route.params.id;
   try {
-    const response = await axios.get(`${baseURL}/api/aktivitas/${aktivitasId}`);
+    const response = await axios.get(`${baseURL}/api/aktivitas/${idToFetch}`);
     aktivitas.value = response.data;
     breadcrumbItems.value[1] = {
       text: aktivitas.value.project?.namaProject || 'Proyek',
@@ -587,6 +642,34 @@ const fetchPegawai = async () => { try { const res = await axios.get(`${baseURL}
 onMounted(() => { 
   fetchDetailAktivitas(); fetchTeams(); fetchProjects(); fetchPegawai();
 });
+
+// --- WATCHER FOR ROUTE CHANGES ---
+// This is the key fix for navigation not updating the view
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      fetchDetailAktivitas();
+    }
+  }
+);
+
+// --- HELPER STATUS COLOR ---
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Selesai': return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+    case 'Dalam Proses': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+    default: return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'; // Belum Selesai
+  }
+};
+
+const getStatusDotColor = (status) => {
+  switch (status) {
+    case 'Selesai': return 'bg-green-500';
+    case 'Dalam Proses': return 'bg-blue-500';
+    default: return 'bg-gray-400';
+  }
+};
 
 // --- ACTIONS HANDLERS ---
 const handleUnifiedSubmit = async (payload) => {
@@ -609,7 +692,8 @@ const handleUnifiedSubmit = async (payload) => {
           tipe: 'LINK',
           checklist_item_id: checklistItemId 
         };
-        await axios.post(`${baseURL}/api/aktivitas/${aktivitasId}/link`, postData);
+        // Use route.params.id directly
+        await axios.post(`${baseURL}/api/aktivitas/${route.params.id}/link`, postData);
         toast.success("Link berhasil disimpan!");
         fetchDetailAktivitas();
     } catch (e) { toast.error("Gagal simpan link"); }
@@ -624,7 +708,8 @@ const handleUnifiedSubmit = async (payload) => {
       formData.append('keterangan', finalKeterangan); 
       if (checklistItemId) formData.append('checklist_item_id', checklistItemId);
       try {
-        await axios.post(`${baseURL}/api/aktivitas/${aktivitasId}/dokumen`, formData);
+        // Use route.params.id directly
+        await axios.post(`${baseURL}/api/aktivitas/${route.params.id}/dokumen`, formData);
         successCount++;
       } catch (e) {
         toast.error(`Gagal upload: ${file.name}`);
@@ -645,7 +730,8 @@ const handleUpdateActivity = async (formData) => {
   const nullable = ['tanggalMulai','tanggalSelesai','jamMulai','jamSelesai'];
   nullable.forEach(f => { if(payload[f]==='') payload[f]=null; });
   try {
-    await axios.put(`${baseURL}/api/aktivitas/${aktivitasId}`, payload);
+    // Use route.params.id directly
+    await axios.put(`${baseURL}/api/aktivitas/${route.params.id}`, payload);
     toast.success("Berhasil diperbarui!");
     closeEditModal();
     fetchDetailAktivitas();
@@ -654,7 +740,7 @@ const handleUpdateActivity = async (formData) => {
 
 const confirmDeleteActivity = () => { if(confirm("Hapus aktivitas?")) deleteActivity(); };
 const deleteActivity = async () => {
-  try { await axios.delete(`${baseURL}/api/aktivitas/${aktivitasId}`); toast.success("Terhapus"); router.push('/aktivitas/daftar'); }
+  try { await axios.delete(`${baseURL}/api/aktivitas/${route.params.id}`); toast.success("Terhapus"); router.push('/aktivitas/daftar'); }
   catch(e) { toast.error("Gagal hapus."); }
 };
 
@@ -714,7 +800,8 @@ const handleDownloadAll = async () => {
   if (window.confirm(`Unduh semua file?`)) {
     const toastId = toast.info("Sedang memproses...", { timeout: false });
     try {
-      const response = await axios.get(`${baseURL}/api/aktivitas/${aktivitasId}/download-all`, {
+      // Use route.params.id
+      const response = await axios.get(`${baseURL}/api/aktivitas/${route.params.id}/download-all`, {
         responseType: 'blob', timeout: 60000,
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -805,5 +892,12 @@ const handleReplaceFileSelected = async (event) => {
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 </style>

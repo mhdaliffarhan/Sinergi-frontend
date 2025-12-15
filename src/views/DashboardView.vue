@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screenfont-sans transition-colors duration-300">
+  <div class="min-h-screen p-3 sm:p-8 font-sans transition-colors duration-300 relative overflow-hidden bg-gray-50 dark:bg-gray-900">
     
     <!-- BACKGROUND DECORATIONS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -29,7 +29,7 @@
 
           <!-- Tombol Buat Aktivitas -->
           <button 
-            @click="openModalAktivitas" 
+            @click="openModal" 
             class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             <span class="text-xl font-bold">+</span>
@@ -118,7 +118,13 @@
             </template>
 
             <template v-else>
-              <DashboardStats title="Aktivitas Saya" :value="stats.totalAktivitasSaya" icon="👤" color="blue" />
+              <!-- [FIXED] Menampilkan 'Aktivitas Saya' dengan benar -->
+              <DashboardStats 
+                title="Aktivitas Saya" 
+                :value="stats.totalAktivitasSaya || 0" 
+                icon="👤" 
+                color="blue" 
+              />
               <DashboardStats title="Tunggakan Dokumen" :value="todoList.length" icon="⚠️" color="orange" />
               <DashboardStats title="Total Tim" :value="authStore.user?.teams?.length || 0" icon="👥" color="green" />
             </template>
@@ -208,7 +214,15 @@ const authStore = useAuthStore();
 const toast = useToast();
 
 const isLoading = ref(true);
-const stats = ref({});
+const stats = ref({
+  // Default values to prevent undefined errors
+  totalPegawai: 0,
+  totalTim: 0,
+  totalAktivitasBulanIni: 0,
+  totalAnggotaTim: 0,
+  totalProject: 0,
+  totalAktivitasSaya: 0 
+});
 const todoList = ref([]);
 const agendaList = ref([]); 
 const chartData = ref([]);
@@ -274,7 +288,7 @@ const fetchDashboardData = async () => {
     }
 
     const resStats = await axios.get(`${baseURL}/api/dashboard/stats`, { params });
-    stats.value = resStats.data;
+    stats.value = { ...stats.value, ...resStats.data };
 
     if (!isKepala.value) {
         const resTodo = await axios.get(`${baseURL}/api/dashboard/todo`, { params });
@@ -294,6 +308,7 @@ const fetchDashboardData = async () => {
     agendaList.value = resAgenda.data.items;
 
   } catch (error) {
+    console.error("Dashboard error:", error);
     toast.error("Gagal memuat data dashboard.");
   } finally {
     isLoading.value = false;
@@ -321,7 +336,7 @@ const fetchFormData = async () => {
   }
 };
 
-const openModalAktivitas = () => { 
+const openModal = () => { 
   if (teamList.value.length === 0) {
     fetchFormData();
   }

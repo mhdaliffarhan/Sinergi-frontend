@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
     const role = user.value?.sistemRole?.namaRole;
     return role === 'Superadmin' || role === 'Admin';
   });
-
+  
   const isSuperAdmin = computed(() => {
     const role = user.value?.sistemRole?.namaRole;
     return role === 'Superadmin';
