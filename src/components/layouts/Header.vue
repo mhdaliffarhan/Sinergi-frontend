@@ -13,15 +13,7 @@
       </div>
       <div class="flex items-center gap-2 sm:gap-4">
 
-        <button 
-          @click="openGuideBookModal" 
-          class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" 
-          title="Buku Panduan Penggunaan"
-        >
-          📖
-        </button>
 
-        
         <button @click="toggleTheme" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
           <span v-if="theme === 'light'">☀️</span>
           <span v-else>🌙</span>
@@ -141,6 +133,13 @@
                     <span class="mr-3 text-lg opacity-70">👤</span> Profil Saya
                   </router-link>
                 </MenuItem>
+                
+                <!-- MENU DROPDOWN PANDUAN (OPSIONAL, JIKA INGIN DOUBLE AKSES) -->
+                <MenuItem v-slot="{ active }">
+                  <button @click="openTutorial" :class="[active ? 'bg-gray-50 dark:bg-gray-700' : '', 'group flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200']">
+                    <span class="mr-3 text-lg opacity-70">📖</span> Panduan Aplikasi
+                  </button>
+                </MenuItem>
               </div>
 
               <div class="py-1">
@@ -156,21 +155,17 @@
       </div>
     </div>
   </header>
-  <FilePreviewModal
-    :show="showGuideBookModal"
-    :file-url="guideBookData.url"
-    :file-name="guideBookData.name"
-    :file-type="guideBookData.type"
-    @close="showGuideBookModal = false"
-  />
+  
+  <!-- FilePreviewModal DIHAPUS karena digantikan oleh TutorialModal di Dashboard -->
+  <!-- Tetapi jika Anda masih menggunakan FilePreviewModal untuk hal lain, biarkan saja. -->
+  <!-- Namun untuk tutorial, kita menggunakan event bus ke Dashboard. -->
 </template>
 
 <script setup>
 import { useUIStore } from '@/stores/ui';
 import { useAuthStore } from '@/stores/auth';
-import { ref, onMounted, onUnmounted} from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
-import FilePreviewModal from '@/components/FilePreviewModal.vue';
 import axios from 'axios'; 
 import { useRouter } from 'vue-router';
 import { formatDistanceToNowStrict } from 'date-fns';
@@ -186,15 +181,15 @@ const notifications = ref([]);
 let pollingInterval = null;
 const POLLING_INTERVAL_MS = 60000;
 
-const showGuideBookModal = ref(false);
-const guideBookData = {
-    url: '/BukuPedoman.pdf',
-    name: 'Buku Pedoman Penggunaan Aplikasi',
-    type: 'application/pdf'
-};
-
-const openGuideBookModal = () => {
-    showGuideBookModal.value = true;
+// -- LOGIKA TUTORIAL (BARU) --
+const openTutorial = () => {
+  // Trigger event ke window agar DashboardView bisa menangkapnya
+  window.dispatchEvent(new CustomEvent('open-tutorial-modal'));
+  
+  // Arahkan ke dashboard jika belum di sana
+  if (router.currentRoute.value.name !== 'dashboard') {
+    router.push('/dashboard');
+  }
 };
 
 const theme = ref('light'); 

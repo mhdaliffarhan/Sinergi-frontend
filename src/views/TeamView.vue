@@ -21,12 +21,38 @@
       </div>
     </div>
 
+    <!-- FILTER TOGGLE -->
+    <div class="mb-6">
+      <div class="inline-flex bg-gray-100 dark:bg-gray-700 p-1 rounded-xl shadow-inner">
+        <button 
+          @click="setFilter('saya')"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200"
+          :class="filterMode === 'saya' 
+            ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
+            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+        >
+          Tim Saya
+        </button>
+        <button 
+          @click="setFilter('semua')"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200"
+          :class="filterMode === 'semua' 
+            ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
+            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+        >
+          Semua Tim
+        </button>
+      </div>
+    </div>
+
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-5 mb-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+      <!-- Background Decorations -->
       <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
       <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl"></div>
 
       <div class="flex flex-col md:flex-row gap-5 justify-between items-center relative z-10">
         
+        <!-- Search Input -->
         <div class="relative w-full md:max-w-lg group">
           <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -39,8 +65,8 @@
           />
         </div>
 
+        <!-- View Mode Toggle -->
         <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-          
           <div class="bg-gray-100 dark:bg-gray-700 p-1 rounded-xl flex shadow-inner">
             <button
               @click="viewMode = 'card'"
@@ -63,7 +89,10 @@
       </div>
     </div>
 
+    <!-- CONTENT AREA -->
     <div class="mt-6 min-h-[300px]">
+      
+      <!-- LOADING STATE -->
       <div v-if="isLoading" class="text-center p-10 text-gray-500 dark:text-gray-400 animate-pulse">
         <div class="inline-block p-4 rounded-full bg-indigo-50 dark:bg-indigo-900/20 mb-3">
           <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -74,22 +103,29 @@
         <p class="font-medium">Memuat daftar tim...</p>
       </div>
 
+      <!-- EMPTY STATE -->
       <div v-else-if="!isLoading && teams.length === 0" class="flex flex-col items-center justify-center p-16 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 group hover:border-indigo-300 transition-colors">
         <span class="text-7xl mb-4 transform group-hover:scale-110 transition-transform duration-300">📭</span>
         <h3 class="text-xl font-bold text-gray-900 dark:text-white">
           Belum Ada Tim
         </h3>
         <p class="text-gray-500 dark:text-gray-400 text-center max-w-sm mt-2">
-          Tidak ditemukan tim yang sesuai dengan pencarian Anda.
+          {{ filterMode === 'saya' ? 'Anda belum tergabung dalam tim manapun.' : 'Tidak ditemukan tim yang sesuai.' }}
         </p>
         <button v-if="authStore.isAdmin" @click="openModal" class="mt-6 text-indigo-600 hover:text-indigo-800 font-medium text-sm">
           + Buat Tim Baru Sekarang
         </button>
       </div>
 
+      <!-- DATA LIST -->
       <div v-else class="animate-fade-in-up">
         <DaftarTeam v-if="viewMode === 'card'" :teams="teams" />
-        <TabelTeam v-if="viewMode === 'table'" :teams="teams" />
+        <TabelTeam 
+          v-if="viewMode === 'table'" 
+          :teams="teams" 
+          :current-page="currentPage" 
+          :items-per-page="itemsPerPage" 
+        />
       </div>
     </div>
 
@@ -99,7 +135,6 @@
       :total-items="totalTeams"
       :items-per-page="itemsPerPage"
       @page-changed="handlePageChange"
-      class="mt-8"
     />
 
     <ModalWrapper :show="isModalOpen" @close="closeModal" title="Buat Tim Baru">
@@ -114,6 +149,7 @@ import axios from 'axios';
 import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/stores/auth';
 
+// Komponen
 import DaftarTeam from '@/components/team/DaftarTeam.vue';
 import TabelTeam from '@/components/team/TabelTeam.vue';
 import ModalWrapper from '@/components/ModalWrapper.vue';
@@ -123,19 +159,25 @@ import Pagination from '@/components/Pagination.vue';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
 const toast = useToast();
+
+// State Data
 const teams = ref([]);
+const allUsers = ref([]);
+const totalTeams = ref(0);
+
+// State UI
 const isModalOpen = ref(false);
 const viewMode = ref('table');
 const isLoading = ref(false);
 const searchQuery = ref('');
+const filterMode = ref('saya'); // 'saya' | 'semua'
 let debounceTimer = null;
 
-// PAGINATION
+// Pagination State
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
-const totalTeams = ref(0);
-const allUsers = ref([]);
 
+// Responsive View Mode
 const updateViewMode = () => {
   if (window.innerWidth < 768) {
     viewMode.value = 'card';
@@ -144,24 +186,79 @@ const updateViewMode = () => {
   }
 };
 
+// Handler Ganti Filter
+const setFilter = (mode) => {
+  filterMode.value = mode;
+  currentPage.value = 1;
+  fetchTeams();
+};
+
+// --- CORE FETCH LOGIC (FIXED) ---
 const fetchTeams = async (query = searchQuery.value) => {
   isLoading.value = true;
-  const skip = (currentPage.value - 1) * itemsPerPage.value;
+  
   try {
-    const [teamsRes, usersRes] = await Promise.all([
-      axios.get(`${baseURL}/api/teams`, {
+    // 1. Fetch Users untuk Modal (hanya sekali)
+    if (allUsers.value.length === 0 && authStore.isAdmin) {
+       const usersRes = await axios.get(`${baseURL}/api/users`, { params: { limit: 10000 } });
+       allUsers.value = usersRes.data.items;
+    }
+
+    // 2. Logika "TIM SAYA" (Fix: Fetch Full Data lalu Filter di Client)
+    if (filterMode.value === 'saya') {
+      
+      // Ambil daftar ID tim dari Store (Membership & Kepemimpinan)
+      const myTeamIds = new Set([
+        ...(authStore.user?.teams || []).map(t => t.id),
+        ...(authStore.user?.ketuaTimAktif || []).map(t => t.id)
+      ]);
+
+      if (myTeamIds.size === 0) {
+        teams.value = [];
+        totalTeams.value = 0;
+        isLoading.value = false;
+        return;
+      }
+
+      // Fetch Data Lengkap dari Server (Limit besar untuk filter lokal)
+      // Kita butuh data lengkap (Ketua, Users, dll) yang tidak ada di Store
+      const response = await axios.get(`${baseURL}/api/teams/active`, {
+        params: {
+          q: query,
+          limit: 1000 // Ambil cukup banyak untuk memastikan tim user terambil
+        }
+      });
+      
+      const allActiveTeams = response.data.items;
+
+      // Filter: Hanya ambil tim yang ID-nya ada di myTeamIds
+      let myTeamsFullData = allActiveTeams.filter(team => myTeamIds.has(team.id));
+
+      // Sorting Terbaru (ID descending)
+      myTeamsFullData.sort((a, b) => b.id - a.id);
+
+      // Pagination Client Side
+      totalTeams.value = myTeamsFullData.length;
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      teams.value = myTeamsFullData.slice(start, end);
+
+    } 
+    // 3. Logika "SEMUA TIM" (Server Side Pagination standard)
+    else {
+      const skip = (currentPage.value - 1) * itemsPerPage.value;
+      const response = await axios.get(`${baseURL}/api/teams/active`, {
         params: { 
-          q: searchQuery.value,
+          q: query,
           skip: skip, 
           limit: itemsPerPage.value 
         }
-      }),
-      axios.get(`${baseURL}/api/users`, { params: { limit: 10000 } }) 
-    ]);
+      });
+      
+      teams.value = response.data.items;
+      totalTeams.value = response.data.total;
+    }
 
-    teams.value = teamsRes.data.items;
-    totalTeams.value = teamsRes.data.total;
-    allUsers.value = usersRes.data.items;
   } catch (error) {
     toast.error("Gagal memuat data tim.");
     console.error("Gagal mengambil data tim:", error);
@@ -175,6 +272,23 @@ const handlePageChange = (newPage) => {
   fetchTeams();
 }
 
+const handleTeamSubmit = async (formData) => {
+  try {
+    await axios.post(`${baseURL}/api/teams`, formData);
+    toast.success("Tim berhasil dibuat!");
+    closeModal();
+    await authStore.fetchUser(); // Refresh store jika user jadi anggota tim baru
+    await fetchTeams();
+  } catch (error) {
+    const errorMsg = error.response?.data?.detail?.[0]?.msg || "Gagal menyimpan. Periksa kembali isian Anda.";
+    toast.error(errorMsg);
+  }
+};
+
+const openModal = () => { isModalOpen.value = true; };
+const closeModal = () => { isModalOpen.value = false; };
+
+// Watchers
 watch(searchQuery, (newQuery) => {
   currentPage.value = 1;
   clearTimeout(debounceTimer);
@@ -183,42 +297,23 @@ watch(searchQuery, (newQuery) => {
   }, 500);
 });
 
+watch(() => authStore.user, () => {
+  if (filterMode.value === 'saya') fetchTeams();
+}, { deep: true });
+
 onMounted(() => {
   updateViewMode();
   window.addEventListener('resize', updateViewMode);
   fetchTeams();
 });
-
-const handleTeamSubmit = async (formData) => {
-  try {
-    await axios.post(`${baseURL}/api/teams`, formData);
-    toast.success("Tim berhasil dibuat!");
-    closeModal();
-    await fetchTeams();
-  } catch (error) {
-    const errorMsg = error.response?.data?.detail?.[0]?.msg || "Gagal menyimpan. Periksa kembali isian Anda.";
-    toast.error(errorMsg);
-    console.error("Gagal menyimpan Tim:", error.response?.data || error.message);
-  }
-};
-
-const openModal = () => { isModalOpen.value = true; };
-const closeModal = () => { isModalOpen.value = false; };
 </script>
 
 <style scoped>
-/* Animasi Fade In Up */
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out;
 }
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

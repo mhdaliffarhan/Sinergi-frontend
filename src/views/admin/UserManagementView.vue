@@ -39,7 +39,7 @@
           />
         </div>
 
-        </div>
+      </div>
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -51,6 +51,8 @@
               <th scope="col" class="px-6 py-4 font-semibold">Username</th>
               <th scope="col" class="px-6 py-4 font-semibold">No HP</th>
               <th scope="col" class="px-6 py-4 font-semibold">Peran</th>
+              <!-- KOLOM BARU -->
+              <th scope="col" class="px-6 py-4 font-semibold">Terakhir Login</th>
               <th scope="col" class="px-6 py-4 font-semibold">Status</th>
               <th scope="col" class="px-6 py-4 font-semibold text-right">Aksi</th>
             </tr>
@@ -92,6 +94,16 @@
                   {{ user.sistemRole.namaRole }}
                 </span>
               </td>
+              
+              <!-- DATA BARU: LAST LOGIN -->
+              <td class="px-6 py-4">
+                <div v-if="user.lastLogin" class="flex flex-col text-xs">
+                  <span class="font-medium text-gray-900 dark:text-white">{{ formatTime(user.lastLogin) }}</span>
+                  <span class="text-gray-500">{{ formatDate(user.lastLogin) }}</span>
+                </div>
+                <span v-else class="text-xs text-gray-400 italic">Belum login</span>
+              </td>
+
               <td class="px-6 py-4">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium" 
                   :class="user.isActive 
@@ -103,7 +115,7 @@
               </td>
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                   <button 
+                    <button 
                     @click="openEditModal(user)" 
                     class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
                     title="Edit User"
@@ -122,7 +134,7 @@
               </td>
             </tr>
             <tr v-if="users.length === 0" class="bg-white dark:bg-gray-800">
-              <td colspan="6" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="7" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
                 <div class="flex flex-col items-center justify-center">
                   <span class="text-4xl mb-3">🔍</span>
                   <p>Tidak ada pengguna ditemukan.</p>
@@ -157,8 +169,6 @@
 </template>
 
 <script setup>
-// ... (Bagian script SAMA PERSIS dengan yang Anda berikan di atas) ...
-// Pastikan Anda menyalin script setup Anda yang sudah benar (termasuk handleUserSubmit yang diperbaiki)
 import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
@@ -166,6 +176,8 @@ import ModalWrapper from '@/components/ModalWrapper.vue';
 import FormUser from '@/components/admin/FormUser.vue';
 import Pagination from '@/components/Pagination.vue';
 import { useAuthStore } from '@/stores/auth';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
@@ -197,8 +209,8 @@ const fetchData = async () => {
     });
     users.value = usersResponse.data.items;
     totalUsers.value = usersResponse.data.total;
+    console.log("Data Users : ", users.value);
 
-    // Ambil data peran dan jabatan (hanya jika belum ada)
     if (sistemRoles.value.length === 0) {
       const rolesResponse = await axios.get(`${baseURL}/api/sistem-roles`);
       sistemRoles.value = rolesResponse.data;
@@ -214,11 +226,8 @@ const fetchData = async () => {
 };
 
 watch(searchQuery, (newQuery) => {
-  // Reset ke halaman pertama setiap kali pencarian baru
   currentPage.value = 1; 
-  // Hapus timer yang ada untuk mencegah request berlebihan
   clearTimeout(debounceTimer);
-  // Atur timer baru. API hanya akan dipanggil setelah pengguna berhenti mengetik selama 500ms
   debounceTimer = setTimeout(() => {
     fetchData();
   }, 500);
@@ -236,9 +245,20 @@ const getProfileUrl = (path) => {
   return path;
 };
 
+// HELPER TANGGAL & WAKTU (Last Login)
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  return format(new Date(dateString), 'd MMMM yyyy', { locale: id });
+};
+
+const formatTime = (dateString) => {
+  if (!dateString) return '';
+  return format(new Date(dateString), 'HH:mm', { locale: id });
+};
+
 const handlePageChange = (newPage) => {
   currentPage.value = newPage;
-  fetchData(); // Ambil data untuk halaman baru
+  fetchData();
 };
 
 const openCreateModal = () => {
@@ -278,7 +298,6 @@ const confirmDeleteUser = (user) => {
 };
 
 const handleUserSubmit = async (formData) => {
-  
   const payload = { ...formData };
 
   if (isEditMode.value) {
@@ -296,12 +315,9 @@ const handleUserSubmit = async (formData) => {
     closeModal();
     await fetchData(); 
   } catch (error) {
-    // --- BLOK CATCH YANG DISEMPURNAKAN ---
     if (error.response && error.response.status === 422) {
-      // Ini adalah error validasi dari FastAPI
       const validationErrors = error.response.data.detail;
       if (Array.isArray(validationErrors)) {
-        // Ambil pesan error validasi pertama yang jelas
         const firstError = validationErrors[0];
         const fieldName = firstError.loc[firstError.loc.length - 1];
         const errorMsg = firstError.msg;
@@ -310,11 +326,9 @@ const handleUserSubmit = async (formData) => {
         toast.error("Terjadi error validasi (422).");
       }
     } else {
-      // Error umum lainnya
       const errorMsg = error.response?.data?.detail || "Terjadi kesalahan.";
       toast.error(errorMsg);
     }
-    // --- AKHIR BLOK CATCH ---
   }
 };
 

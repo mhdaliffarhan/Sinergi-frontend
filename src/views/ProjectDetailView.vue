@@ -456,7 +456,7 @@ const displayedActivities = computed(() => {
 const isAuthorized = computed(() => {
   if (!authStore.user || !project.value) return false;
   const userId = authStore.user.id;
-  if (authStore.isAdmin) return true;
+  if (authStore.isAdmin || authStore.isOperator) return true;
   if (project.value.team?.ketuaTimId === userId) return true;
   if (project.value.projectLeaderId === userId) return true;
   return false;

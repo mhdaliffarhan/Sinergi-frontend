@@ -21,6 +21,26 @@
       </div>
     </div>
 
+    <!-- TAB FILTER -->
+    <div class="mb-6">
+      <div class="inline-flex bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
+        <button 
+          @click="setFilter('saya')"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition-all"
+          :class="filterMode === 'saya' ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'"
+        >
+          Project Saya
+        </button>
+        <button 
+          @click="setFilter('semua')"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition-all"
+          :class="filterMode === 'semua' ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'"
+        >
+          Semua Project
+        </button>
+      </div>
+    </div>
+
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-5 mb-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden">
       <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"></div>
       <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-green-500/5 rounded-full blur-2xl"></div>
@@ -60,7 +80,7 @@
             </button>
           </div>
 
-          </div>
+        </div>
       </div>
     </div>
 
@@ -81,7 +101,7 @@
           Belum Ada Project
         </h3>
         <p class="text-gray-500 dark:text-gray-400 text-center max-w-sm mt-2">
-          Tidak ditemukan Project yang sesuai dengan pencarian Anda.
+          {{ filterMode === 'saya' ? 'Anda belum memiliki project terkait.' : 'Tidak ditemukan Project yang sesuai dengan pencarian Anda.' }}
         </p>
         <button v-if="authStore.user?.isKetuaTim || authStore.isOperator" @click="openModal" class="mt-6 text-blue-600 hover:text-blue-800 font-medium text-sm">
           + Buat Project Baru Sekarang
@@ -90,7 +110,12 @@
 
       <div v-else class="animate-fade-in-up">
         <DaftarProject v-if="viewMode === 'card'" :projects="projects" />
-        <TabelProject v-if="viewMode === 'table'" :projects="projects" />
+        <TabelProject 
+          v-if="viewMode === 'table'" 
+          :projects="projects" 
+          :current-page="currentPage" 
+          :items-per-page="itemsPerPage"
+        />
       </div>
     </div>
 
@@ -128,8 +153,9 @@ const projects = ref([]);
 const teamList = ref([]);
 const isModalOpen = ref(false);
 const viewMode = ref('table');
-const isLoading = ref(false); // State loading
+const isLoading = ref(false);
 const searchQuery = ref('');
+const filterMode = ref('saya'); // Default 'saya'
 let debounceTimer = null;
 
 // Pagination
@@ -137,20 +163,77 @@ const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const totalProjects = ref(0);
 
-// Fetch Projects
+const setFilter = (mode) => {
+  filterMode.value = mode;
+  currentPage.value = 1;
+  fetchProjects();
+};
+
 const fetchProjects = async () => {
   isLoading.value = true;
   try {
-    const skip = (currentPage.value - 1) * itemsPerPage.value;
-    const response = await axios.get(`${baseURL}/api/projects`, {
-      params: {
-        q: searchQuery.value,
-        skip: skip,
-        limit: itemsPerPage.value
-      }
-    });
-    projects.value = response.data.items;
-    totalProjects.value = response.data.total;
+    
+    // A. FETCH SEMUA PROJECT (Server Side)
+    if (filterMode.value === 'semua') {
+      const skip = (currentPage.value - 1) * itemsPerPage.value;
+      const response = await axios.get(`${baseURL}/api/projects`, {
+        params: {
+          q: searchQuery.value,
+          skip: skip,
+          limit: itemsPerPage.value
+        }
+      });
+      
+      // Sorting ID Desc (Terbaru)
+      const items = response.data.items || [];
+      items.sort((a, b) => b.id - a.id);
+      
+      projects.value = items;
+      totalProjects.value = response.data.total;
+    } 
+    
+    // B. FETCH PROJECT SAYA (Client Side Logic)
+    else {
+      // 1. Fetch All (limit besar untuk difilter lokal)
+      // Karena belum ada endpoint /projects/me di backend
+      const response = await axios.get(`${baseURL}/api/projects`, {
+        params: {
+          q: searchQuery.value,
+          limit: 1000 
+        }
+      });
+      
+      let allProjects = response.data.items || [];
+
+      // 2. Ambil List ID Tim Saya
+      const myTeamsMember = authStore.user?.teams || [];
+      const myTeamsLeader = authStore.user?.ketuaTimAktif || [];
+      const myTeamIds = [...myTeamsMember, ...myTeamsLeader].map(t => t.id);
+      const myId = authStore.user?.id;
+
+      // 3. Filter: Project milik Tim Saya ATAU Saya Leadernya
+      allProjects = allProjects.filter(p => {
+        // Cek apakah team project ini ada di list tim saya
+        const projectTeamId = p.team?.id || p.teamId;
+        const isMyTeam = myTeamIds.includes(projectTeamId);
+        
+        // Cek apakah saya project leader
+        const projectLeaderId = p.projectLeader?.id || p.projectLeaderId;
+        const isMyProject = projectLeaderId === myId;
+        
+        return isMyTeam || isMyProject;
+      });
+
+      // 4. Sorting Terbaru
+      allProjects.sort((a, b) => b.id - a.id);
+
+      // 5. Pagination Client Side
+      totalProjects.value = allProjects.length;
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      projects.value = allProjects.slice(start, end);
+    }
+
   } catch (error) {
     toast.error("Gagal memuat data project.");
     console.error("Gagal mengambil data project:", error);
@@ -159,19 +242,16 @@ const fetchProjects = async () => {
   }
 };
 
-// Fetch Teams for Form
 const fetchTeams = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/teams/active`);
     teamList.value = response.data.items;
-    console.log('Ini Tim List : ', teamList);
   } catch (error) {
     toast.error("Gagal memuat daftar tim.");
     console.error(error);
   }
 };
 
-// Handle Submit
 const handleProjectSubmit = async (formData) => {
   try {
     await axios.post(`${baseURL}/api/projects`, formData);
@@ -184,7 +264,6 @@ const handleProjectSubmit = async (formData) => {
   }
 };
 
-// Handlers
 const handlePageChange = (newPage) => {
   currentPage.value = newPage;
   fetchProjects();
@@ -199,7 +278,7 @@ watch(searchQuery, (newQuery) => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     fetchProjects();
-  }, 500); // Debounce 500ms
+  }, 500); 
 });
 
 onMounted(() => {

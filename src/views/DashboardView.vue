@@ -118,7 +118,6 @@
             </template>
 
             <template v-else>
-              <!-- [FIXED] Menampilkan 'Aktivitas Saya' dengan benar -->
               <DashboardStats 
                 title="Aktivitas Saya" 
                 :value="stats.totalAktivitasSaya || 0" 
@@ -176,7 +175,7 @@
         </div>
       </transition>
 
-      <!-- MODAL FORM -->
+      <!-- MODAL FORM AKTIVITAS -->
       <ModalWrapper :show="isModalOpen" @close="closeModal" title="Buat Aktivitas Baru">
         <FormAktivitas 
           tipe="Buat" 
@@ -189,6 +188,9 @@
         />
       </ModalWrapper>
 
+      <!-- MODAL TUTORIAL (BARU) -->
+      <TutorialModal :is-open="showTutorial" @close="closeTutorial" />
+
     </div>
   </div>
 </template>
@@ -198,6 +200,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
+import { differenceInDays } from 'date-fns'; // Sudah ada di project
 
 import DashboardStats from '@/components/dashboard/DashboardStats.vue';
 import DashboardTodoList from '@/components/dashboard/DashboardTodoList.vue';
@@ -208,6 +211,7 @@ import DashboardTeamTimeline from '@/components/dashboard/DashboardTeamTimeline.
 
 import ModalWrapper from '@/components/ModalWrapper.vue';
 import FormAktivitas from '@/components/aktivitas/FormAktivitas.vue';
+import TutorialModal from '@/components/TutorialModal.vue';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const authStore = useAuthStore();
@@ -215,7 +219,6 @@ const toast = useToast();
 
 const isLoading = ref(true);
 const stats = ref({
-  // Default values to prevent undefined errors
   totalPegawai: 0,
   totalTim: 0,
   totalAktivitasBulanIni: 0,
@@ -229,6 +232,8 @@ const chartData = ref([]);
 const allTeams = ref([]);
 
 const isModalOpen = ref(false);
+const showTutorial = ref(false); // State Modal Tutorial
+
 const teamList = ref([]);
 const projectList = ref([]);
 const pegawaiList = ref([]);
@@ -363,6 +368,49 @@ const handleActivitySubmit = async (formData) => {
   }
 };
 
+// --- LOGIKA TUTORIAL ---
+const checkTutorialLogic = () => {
+  const SESSION_KEY = 'has_seen_tutorial_session';
+  const hasSeenInSession = sessionStorage.getItem(SESSION_KEY);
+
+  // Jika sudah dilihat di sesi ini, jangan tampilkan lagi (agar user tidak terganggu saat refresh)
+  if (hasSeenInSession) return;
+
+  const lastLogin = authStore.user?.lastLogin;
+  
+  let shouldShow = false;
+
+  if (!lastLogin) {
+    // Kasus 1: User baru / belum pernah login (atau data lama null) -> Tampilkan
+    shouldShow = true;
+  } else {
+    // Kasus 2: Cek selisih hari
+    const daysSinceLogin = differenceInDays(new Date(), new Date(lastLogin));
+    if (daysSinceLogin >= 7) {
+      // Jika sudah lebih dari seminggu tidak login -> Tampilkan
+      shouldShow = true;
+    }
+  }
+
+  if (shouldShow) {
+    setTimeout(() => {
+      showTutorial.value = true;
+    }, 1500); // Delay sedikit agar smooth
+  }
+};
+
+const closeTutorial = () => {
+  showTutorial.value = false;
+  // Tandai sudah dilihat di sesi ini
+  sessionStorage.setItem('has_seen_tutorial_session', 'true');
+};
+
+// Listener untuk event dari Header (Manual Trigger)
+// Kita gunakan window event listener sederhana untuk komunikasi antar komponen jauh
+const handleManualTutorialTrigger = () => {
+  showTutorial.value = true;
+};
+
 onMounted(() => {
   if (isKetuaTim.value && authStore.user?.ketuaTimAktif) {
       managedTeams.value = authStore.user.ketuaTimAktif;
@@ -371,6 +419,18 @@ onMounted(() => {
   if (managedTeams.value.length > 0) selectedTeamId.value = managedTeams.value[0].id;
 
   fetchDashboardData();
+  
+  // Jalankan logika tutorial
+  checkTutorialLogic();
+
+  // Listen event custom dari Header
+  window.addEventListener('open-tutorial-modal', handleManualTutorialTrigger);
+});
+
+// Cleanup listener
+import { onUnmounted } from 'vue';
+onUnmounted(() => {
+  window.removeEventListener('open-tutorial-modal', handleManualTutorialTrigger);
 });
 </script>
 
