@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen p-3 sm:p-8 font-sans transition-colors duration-300 relative overflow-hidden bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen font-sans transition-colors duration-300 relative overflow-hidden bg-gray-50 dark:bg-gray-900">
     
     <!-- BACKGROUND DECORATIONS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">

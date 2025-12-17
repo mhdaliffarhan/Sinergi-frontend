@@ -304,8 +304,8 @@ const validateProfileForm = () => {
     if (!nohpNumeric.startsWith('62')) {
       formErrors.value.nohp = 'No. HP harus diawali dengan 62.';
       isValid = false;
-    } else if (nohpNumeric.length < 12 || nohpNumeric.length > 14) {
-      formErrors.value.nohp = 'Panjang No. HP harus 12-14 digit.';
+    } else if (nohpNumeric.length < 8 || nohpNumeric.length > 14) {
+      formErrors.value.nohp = 'Panjang No. HP harus 8-14 digit.';
       isValid = false;
     }
   }
