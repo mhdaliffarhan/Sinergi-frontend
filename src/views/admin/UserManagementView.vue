@@ -51,7 +51,6 @@
               <th scope="col" class="px-6 py-4 font-semibold">Username</th>
               <th scope="col" class="px-6 py-4 font-semibold">No HP</th>
               <th scope="col" class="px-6 py-4 font-semibold">Peran</th>
-              <!-- KOLOM BARU -->
               <th scope="col" class="px-6 py-4 font-semibold">Terakhir Login</th>
               <th scope="col" class="px-6 py-4 font-semibold">Status</th>
               <th scope="col" class="px-6 py-4 font-semibold text-right">Aksi</th>
@@ -66,22 +65,20 @@
               <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                 <div class="flex items-center">
                   
-                  <div class="h-8 w-8 rounded-full overflow-hidden mr-3 flex-shrink-0 bg-purple-100 dark:bg-purple-900/30">
-                    
+                  <div class="h-8 w-8 rounded-full overflow-hidden mr-3 flex-shrink-0 bg-purple-100 dark:bg-purple-900/30 border border-gray-200 dark:border-gray-600">
                     <img 
                       v-if="user.fotoProfilUrl" 
                       :src="getProfileUrl(user.fotoProfilUrl)" 
                       alt="Foto Profil"
                       class="h-full w-full object-cover"
+                      @error="$event.target.src = '/profile-default.png'"
                     />
-                    
                     <div 
                       v-else 
                       class="h-full w-full flex items-center justify-center text-purple-600 dark:text-purple-300 font-bold"
                     >
                       {{ user.namaLengkap ? user.namaLengkap.charAt(0).toUpperCase() : '?' }}
                     </div>
-                    
                   </div>
                   
                   {{ user.namaLengkap }}
@@ -95,7 +92,6 @@
                 </span>
               </td>
               
-              <!-- DATA BARU: LAST LOGIN -->
               <td class="px-6 py-4">
                 <div v-if="user.lastLogin" class="flex flex-col text-xs">
                   <span class="font-medium text-gray-900 dark:text-white">{{ formatTime(user.lastLogin) }}</span>
@@ -105,10 +101,10 @@
               </td>
 
               <td class="px-6 py-4">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-200" 
                   :class="user.isActive 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'">
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800' 
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800'">
                   <span class="w-1.5 h-1.5 rounded-full" :class="user.isActive ? 'bg-green-500' : 'bg-red-500'"></span>
                   {{ user.isActive ? 'Aktif' : 'Non-Aktif' }}
                 </span>
@@ -209,7 +205,6 @@ const fetchData = async () => {
     });
     users.value = usersResponse.data.items;
     totalUsers.value = usersResponse.data.total;
-    console.log("Data Users : ", users.value);
 
     if (sistemRoles.value.length === 0) {
       const rolesResponse = await axios.get(`${baseURL}/api/sistem-roles`);
@@ -239,10 +234,9 @@ onMounted(() => {
 
 const getProfileUrl = (path) => {
   if (!path) return null;
-  if (path.startsWith('./')) {
-    return `${baseURL}/${path.replace('./', '')}`;
-  }
-  return path;
+  if (path.startsWith('http')) return path;
+  // Handle relative paths from backend, e.g. "./profile-picture/..." -> "baseURL/profile-picture/..."
+  return `${baseURL}/${path.replace(/^\.\//, '')}`;
 };
 
 // HELPER TANGGAL & WAKTU (Last Login)
@@ -299,19 +293,39 @@ const confirmDeleteUser = (user) => {
 
 const handleUserSubmit = async (formData) => {
   const payload = { ...formData };
-
+  // Simpan password baru untuk logika reset (jika ada)
+  const newPassword = payload.password;
+  
+  // Hapus password dari payload utama untuk update profil biasa 
+  // (karena endpoint update user biasanya tidak menghandle password secara langsung jika dipisah)
   if (isEditMode.value) {
     delete payload.password;
   }
 
   try {
     if (isEditMode.value) {
+      // 1. Update Data Profil (PUT /api/users/{id})
       await axios.put(`${baseURL}/api/users/${userToEdit.value.id}`, payload);
-      toast.success(`Pengguna "${payload.username}" berhasil diperbarui.`);
+      
+      // 2. Reset Password (PUT /api/admin/users/{id}/reset-password) - Jika diisi dan admin punya akses
+      if (newPassword && newPassword.trim() !== '') {
+        // Panggil endpoint khusus admin reset password
+        await axios.put(
+          `${baseURL}/api/admin/users/${userToEdit.value.id}/reset-password`,
+          { new_password: newPassword }
+        );
+        toast.success(`Data & Password pengguna "${payload.username}" berhasil diperbarui.`);
+      } else {
+        toast.success(`Data pengguna "${payload.username}" berhasil diperbarui.`);
+      }
+
     } else {
+      // Create Mode (Password wajib ada di payload)
+      // Pastikan payload create user sesuai skema backend
       await axios.post(`${baseURL}/api/users`, payload);
       toast.success(`Pengguna "${payload.username}" berhasil dibuat.`);
     }
+    
     closeModal();
     await fetchData(); 
   } catch (error) {
@@ -319,14 +333,15 @@ const handleUserSubmit = async (formData) => {
       const validationErrors = error.response.data.detail;
       if (Array.isArray(validationErrors)) {
         const firstError = validationErrors[0];
+        // Clean field name for display if it's nested
         const fieldName = firstError.loc[firstError.loc.length - 1];
         const errorMsg = firstError.msg;
         toast.error(`Validasi Gagal: ${fieldName} - ${errorMsg}`);
       } else {
-        toast.error("Terjadi error validasi (422).");
+        toast.error("Terjadi error validasi input.");
       }
     } else {
-      const errorMsg = error.response?.data?.detail || "Terjadi kesalahan.";
+      const errorMsg = error.response?.data?.detail || "Terjadi kesalahan sistem.";
       toast.error(errorMsg);
     }
   }

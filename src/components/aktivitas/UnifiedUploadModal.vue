@@ -1,5 +1,5 @@
 <template>
-  <div class="p-1 text-gray-800 dark:text-gray-200">
+  <div class="p-1 text-gray-800 dark:text-gray-200 relative">
     
     <!-- PILIHAN TIPE INPUT -->
     <div v-if="!inputType" class="grid grid-cols-2 gap-4 mb-6">
@@ -24,7 +24,7 @@
 
     <!-- FORM INPUT -->
     <div v-else>
-      <button @click="inputType = null" class="mb-4 text-xs text-blue-600 hover:underline flex items-center">
+      <button @click="inputType = null" class="mb-4 text-xs text-blue-600 hover:underline flex items-center" :disabled="isProcessing">
         &larr; Kembali pilih jenis
       </button>
 
@@ -38,6 +38,7 @@
               <div class="text-blue-800 dark:text-blue-200">
                  <p class="font-bold mb-1">Ketentuan Upload:</p>
                  <ul class="list-disc list-inside space-y-0.5 text-xs text-blue-700 dark:text-blue-300">
+                    <li><strong>PENTING:</strong> Pastikan nama file <strong>sesuai dan deskriptif</strong> agar mudah ditemukan kembali.</li>
                     <li>Gambar (JPG/PNG) akan <strong>dikompres otomatis</strong>.</li>
                     <li>PDF maksimal <strong>5 MB</strong>.</li>
                     <li>File lainnya maksimal <strong>10 MB</strong>.</li>
@@ -55,7 +56,7 @@
           @click="!isProcessing && $refs.fileInput.click()"
         >
           <!-- Loading Overlay -->
-          <div v-if="isProcessing" class="absolute inset-0 bg-white/90 dark:bg-gray-800/90 z-10 flex flex-col items-center justify-center">
+          <div v-if="isProcessing" class="absolute inset-0 bg-white/90 dark:bg-gray-800/90 z-10 flex flex-col items-center justify-center cursor-wait">
              <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
              <p class="text-xs font-bold text-blue-600 animate-pulse">Mengoptimalkan File...</p>
           </div>
@@ -74,7 +75,7 @@
                 <span v-if="file.isCompressed" class="text-[10px] bg-green-100 text-green-700 px-1 rounded font-bold">KOMPRES</span>
                 <span class="text-xs text-gray-400">({{ formatFileSize(file.size) }})</span>
               </div>
-              <button @click.stop="removeFile(idx)" class="text-red-500 hover:text-red-700 font-bold px-2">&times;</button>
+              <button @click.stop="!isProcessing && removeFile(idx)" :disabled="isProcessing" class="text-red-500 hover:text-red-700 font-bold px-2 disabled:opacity-50 disabled:cursor-not-allowed">&times;</button>
             </div>
           </div>
         </div>
@@ -82,13 +83,25 @@
 
       <!-- MODE LINK -->
       <div v-if="inputType === 'LINK'" class="mb-6 space-y-3">
+        <!-- INFO LINK -->
+        <div class="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm">
+           <div class="flex items-start gap-3">
+              <span class="text-xl">⚠️</span>
+              <div class="text-yellow-800 dark:text-yellow-200">
+                 <p class="font-bold mb-1">Tips:</p>
+                 <p class="text-xs">Berikan judul link yang <strong>jelas dan sesuai</strong> agar mudah dicari nantinya.</p>
+              </div>
+           </div>
+        </div>
+
         <div>
           <label class="block text-sm font-medium mb-1">URL / Tautan <span class="text-red-500">*</span></label>
           <input 
             v-model="linkUrl" 
             type="url" 
+            :disabled="isProcessing"
             placeholder="https://..."
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -96,8 +109,9 @@
           <input 
             v-model="linkTitle" 
             type="text" 
-            placeholder="Contoh: Folder Drive Foto"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+            :disabled="isProcessing"
+            placeholder="Contoh: Folder Drive Foto Kegiatan X"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60 disabled:cursor-not-allowed"
           />
         </div>
       </div>
@@ -109,15 +123,16 @@
         <div class="grid grid-cols-1 gap-3">
           <!-- Opsi Checklist -->
           <div class="space-y-2">
-            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" :class="targetType === 'checklist' ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600'">
-              <input type="radio" v-model="targetType" value="checklist" class="mr-3">
+            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" :class="[targetType === 'checklist' ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600', isProcessing ? 'opacity-60 cursor-not-allowed pointer-events-none' : '']">
+              <input type="radio" v-model="targetType" value="checklist" class="mr-3" :disabled="isProcessing">
               <span class="font-medium text-sm">Checklist Dokumen Wajib</span>
             </label>
             
             <div v-if="targetType === 'checklist'" class="ml-7 animate-fade-in">
               <select 
                 v-model="selectedChecklistId" 
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm focus:outline-none"
+                :disabled="isProcessing"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option :value="null" disabled>-- Pilih Item Checklist --</option>
                 <option v-for="item in checklistOptions" :key="item.id" :value="item.id">
@@ -129,8 +144,8 @@
 
           <!-- Opsi Dokumen Lain -->
           <div class="space-y-2">
-            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" :class="targetType === 'other' ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600'">
-              <input type="radio" v-model="targetType" value="other" class="mr-3">
+            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" :class="[targetType === 'other' ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600', isProcessing ? 'opacity-60 cursor-not-allowed pointer-events-none' : '']">
+              <input type="radio" v-model="targetType" value="other" class="mr-3" :disabled="isProcessing">
               <span class="font-medium text-sm">Dokumen & Materi Lainnya</span>
             </label>
 
@@ -142,8 +157,9 @@
                     v-for="group in existingGroups" 
                     :key="group"
                     type="button"
+                    :disabled="isProcessing"
                     @click="customKeterangan = group"
-                    class="px-3 py-1 text-xs rounded-full border transition-colors"
+                    class="px-3 py-1 text-xs rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     :class="customKeterangan === group 
                       ? 'bg-blue-600 text-white border-blue-600' 
                       : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-500 hover:border-blue-400'"
@@ -158,8 +174,9 @@
                 <input 
                   v-model="customKeterangan" 
                   type="text" 
+                  :disabled="isProcessing"
                   placeholder="Nama Keterangan / Grup..."
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm focus:outline-none"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -206,7 +223,7 @@ const targetType = ref(props.checklistOptions.length > 0 ? 'checklist' : 'other'
 const selectedChecklistId = ref(null);
 const customKeterangan = ref('');
 const isDragging = ref(false);
-const isProcessing = ref(false); // State untuk loading kompresi
+const isProcessing = ref(false); // State untuk loading kompresi dan submit
 
 // Data Input
 const selectedFiles = ref([]);
@@ -269,6 +286,7 @@ const processFile = async (file) => {
 
 // Handlers File (Async untuk proses kompresi)
 const handleFileSelect = async (e) => {
+  if (isProcessing.value) return; // Prevent selection while processing
   const filesRaw = Array.from(e.target.files);
   if (filesRaw.length === 0) return;
   
@@ -278,6 +296,8 @@ const handleFileSelect = async (e) => {
 
 const handleDrop = async (e) => {
   isDragging.value = false;
+  if (isProcessing.value) return; // Prevent drop while processing
+
   const filesRaw = Array.from(e.dataTransfer.files);
   if (filesRaw.length === 0) return;
 
@@ -328,6 +348,9 @@ const isFormValid = computed(() => {
 
 const submitForm = () => {
   if (!isFormValid.value) return;
+  
+  // Set processing state to true to prevent double clicks and disable inputs
+  isProcessing.value = true;
 
   const payload = {
     type: inputType.value,
@@ -340,6 +363,7 @@ const submitForm = () => {
   };
   
   emit('submit', payload);
+  // Note: Parent component should handle resetting processing state or closing modal
 };
 </script>
 

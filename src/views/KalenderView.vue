@@ -184,7 +184,7 @@ const fetchAktivitas = async () => {
     let params = {};
     const isKepalaSelected = selectedTeams.value.some(t => t.id === 'kepala-kantor-filter');
 
-    if (mode.value === 'team' || mode.value === 'timeline') {
+    if (mode.value === 'team') {
       if (isKepalaSelected) {
         // Prioritaskan endpoint khusus kepala
         endpoint = `${baseURL}/api/aktivitas/kepala`;
@@ -195,7 +195,7 @@ const fetchAktivitas = async () => {
       }
     } else if (mode.value === 'person' && selectedPegawaiId.value) {
       endpoint = `${baseURL}/api/users/${selectedPegawaiId.value}/aktivitas`;
-    } else {
+    } else if(mode.value == 'timeline') {
       endpoint = `${baseURL}/api/kalender/events`;
     }
     const response = await axios.get(endpoint, { params });

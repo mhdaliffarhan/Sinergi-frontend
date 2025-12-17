@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950 p-4 sm:pt-6 font-sans transition-colors duration-300 relative overflow-hidden">
+  <div class="min-h-screen  p-4 sm:pt-6 font-sans transition-colors duration-300 relative overflow-hidden">
     
     <!-- BACKGROUND DECORATIONS -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -351,7 +351,7 @@ const updatePassword = async () => {
     return;
   }
   if (form.value.newPassword.length < 8) {
-    toast.error("Password minimal 8 karakter.");
+    toast.error("Password baru minimal 8 karakter.");
     return;
   }
   const hasLetter = /[a-zA-Z]/.test(form.value.newPassword);

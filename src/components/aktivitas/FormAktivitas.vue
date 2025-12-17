@@ -1,6 +1,7 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="space-y-6 text-gray-800 dark:text-gray-200">
+  <form @submit.prevent="handleSubmit" class="space-y-6 text-gray-800 dark:text-gray-200 p-1">
     
+    <!-- ... (Bagian 1 sampai 6 sama seperti sebelumnya, tidak ada perubahan) ... -->
     <!-- BAGIAN 1: INFORMASI DASAR -->
     <div class="space-y-4">
       <div class="relative">
@@ -42,7 +43,6 @@
       </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        
         <!-- 1. Tim Penyelenggara -->
         <div>
           <label for="tim" class="block text-sm font-medium mb-1 transition-colors" :class="errors.teamId ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'">
@@ -498,8 +498,19 @@
       <button type="button" @click="$emit('close')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors">
         Batal
       </button>
-      <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105">
-        {{ tipe }} Aktivitas
+      <button 
+        type="submit" 
+        :disabled="isSubmitting"
+        class="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span v-if="isSubmitting" class="flex items-center gap-2">
+          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Memproses...
+        </span>
+        <span v-else>{{ tipe }} Aktivitas</span>
       </button>
     </div>
   </form>
@@ -531,6 +542,7 @@ const searchQuery = ref('');
 const searchInput = ref(null); 
 const selectedMembers = ref([]); 
 const includeHead = ref(false); 
+const isSubmitting = ref(false); // State baru untuk loading submit
 
 const namaDokumenBaru = ref('');
 const daftarDokumenWajib = ref([]);
@@ -572,6 +584,11 @@ const errors = reactive({
 });
 
 // --- COMPUTED ---
+
+// Filter Active Users
+const activeUsers = computed(() => {
+  return props.pegawaiList.filter(user => user.isActive);
+});
 
 const daftarTim = computed(() => {
   // [MODIFIKASI] Logic Superadmin/Admin bisa melihat semua tim
@@ -620,12 +637,14 @@ const getSelectedParentName = computed(() => {
 });
 
 const kepalaKantorObj = computed(() => {
-  if (!props.pegawaiList) return null;
-  return props.pegawaiList.find(p => p.jabatan?.namaJabatan === 'Kepala Kantor');
+  // Gunakan activeUsers untuk memastikan kepala kantor juga aktif
+  if (!activeUsers.value) return null;
+  return activeUsers.value.find(p => p.jabatan?.namaJabatan === 'Kepala Kantor');
 });
 
 const filteredMembers = computed(() => {
-  const members = props.pegawaiList || [];
+  // Gunakan activeUsers sebagai sumber data
+  const members = activeUsers.value || [];
   const query = searchQuery.value.toLowerCase();
   if (!query) return members;
   return members.filter(user =>
@@ -710,12 +729,13 @@ const toggleSelectAllMembers = () => {
 const addMembersByTeam = (targetTeamId) => {
   if (!targetTeamId) return;
   targetTeamId = parseInt(targetTeamId);
-  const membersToAdd = props.pegawaiList.filter(user => 
+  // Gunakan activeUsers
+  const membersToAdd = activeUsers.value.filter(user => 
     user.teams && user.teams.some(t => t.id === targetTeamId)
   );
 
   if (membersToAdd.length === 0) {
-    toast.info("Tidak ada anggota tim yang ditemukan (data belum dimuat).");
+    toast.info("Tidak ada anggota tim yang ditemukan (data belum dimuat atau user tidak aktif).");
     return;
   }
 
@@ -765,8 +785,11 @@ const validate = () => {
   return isValid;
 };
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
+  if (isSubmitting.value) return; // Prevent double submit
+
   if (validate()) {
+    isSubmitting.value = true;
     const payload = {
       ...form,
       // Handle nullable fields for empty strings
@@ -781,11 +804,19 @@ const handleSubmit = () => {
 
       melibatkanKepala: false 
     };
+
+    // Emit event and let parent handle API call
+    // Important: we need to handle "done" state from parent or reset manually if not waiting
+    // But since parent closes modal on success, component will be destroyed/reset
     emit('submit', payload);
+
+    // Reset submitting state after a delay or let parent handle close
+    // In this flow, parent (Dashboard/DetailView) handles API and closes modal.
+    // We keep isSubmitting true until modal closes to prevent double clicks.
+    // If validation fails in parent (unlikely here), you might want to reset isSubmitting via prop or watcher.
   }
 };
 
-// --- WATCHERS & INIT ---
 
 onMounted(() => {
   fetchAllActivities();
@@ -825,15 +856,14 @@ watch(() => form.projectId, (newVal) => {
   }
 });
 
-watch(() => form.useDateRange, (val) => { if(!val) form.tanggalSelesai = ''; });
-
-// INISIALISASI DATA (Edit Mode)
+// Reset isSubmitting when initialData changes (re-opening modal for new/edit)
 watch(() => props.initialData, (newData) => {
+  isSubmitting.value = false;
+  // ... rest of init logic ...
   Object.assign(form, {
     namaAktivitas: '', deskripsi: '', teamId: '', projectId: '',
     useDateRange: false, useTime: false, tanggalMulai: '', tanggalSelesai: '', 
     jamMulai: '', jamSelesai: '', idTimTerkait: [],
-    // Defaults baru
     status: 'Belum Selesai', parentId: null, kalenderView: true
   });
   daftarDokumenWajib.value = [];
@@ -852,7 +882,6 @@ watch(() => props.initialData, (newData) => {
     form.kalenderView = (newData.kalenderView !== undefined) ? newData.kalenderView : 
                         (newData.kalender_view !== undefined) ? newData.kalender_view : true;
 
-    // Mapping timTerkait (camelCase from API) -> form.idTimTerkait (camelCase frontend)
     form.idTimTerkait = newData.timTerkait 
       ? newData.timTerkait.map(t => t.id) 
       : [];

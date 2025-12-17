@@ -12,7 +12,8 @@
           type="text" 
           id="nama-project" 
           v-model="form.namaProject"
-          class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+          :disabled="isSubmitting"
+          class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
           :class="errors.namaProject ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-600'"
           placeholder="Contoh: Publikasi Daerah Dalam Angka"
         />
@@ -39,9 +40,9 @@
         <select 
           id="tim" 
           v-model="form.teamId"
-          class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm appearance-none transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer"
+          :disabled="(tipe === 'Simpan' && !isAdmin) || isSubmitting"
+          class="block w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-sm appearance-none transition-all duration-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           :class="errors.teamId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'"
-          :disabled="tipe === 'Simpan' && !isAdmin" 
         >
           <option disabled value="">-- Pilih Tim --</option>
           <option v-for="tim in daftarTim" :key="tim.id" :value="tim.id">
@@ -69,8 +70,11 @@
             <!-- Trigger Box -->
             <div 
               class="min-h-[42px] w-full px-4 py-2.5 border rounded-lg bg-white dark:bg-gray-800 cursor-pointer flex items-center justify-between transition-all duration-200 group-focus-within:ring-2 group-focus-within:ring-blue-500/50 group-focus-within:border-blue-500"
-              :class="errors.projectLeaderId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'"
-              @click="toggleLeaderDropdown"
+              :class="[
+                errors.projectLeaderId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600',
+                isSubmitting ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700' : ''
+              ]"
+              @click="!isSubmitting && toggleLeaderDropdown()"
             >
               <span class="truncate" :class="form.projectLeaderId ? 'text-gray-900 dark:text-white' : 'text-gray-400'">
                 {{ selectedLeaderName }}
@@ -92,6 +96,7 @@
                       v-model="leaderSearchQuery" 
                       placeholder="Cari nama anggota..." 
                       class="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:border-blue-500 transition-colors" 
+                      @click.stop
                       ref="leaderSearchInput"
                     />
                   </div>
@@ -148,7 +153,8 @@
               id="send-whatsapp-proj"
               v-model="form.sendWhatsapp"
               type="checkbox"
-              class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              :disabled="isSubmitting"
+              class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           <div class="ml-2 text-sm">
@@ -163,11 +169,20 @@
     </div>
 
     <div class="flex justify-end gap-3 pt-4 mt-6 border-t border-gray-200 dark:border-gray-700">
-      <button type="button" @click="$emit('close')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors">
+      <button 
+        type="button" 
+        @click="$emit('close')" 
+        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors"
+      >
         Batal
       </button>
-      <button type="submit" :disabled="daftarTim.length === 0" class="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-        {{ tipe }} Project
+      <button 
+        type="submit" 
+        :disabled="daftarTim.length === 0 || isSubmitting"
+        class="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <span v-if="isSubmitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+        <span>{{ tipe }} Project</span>
       </button>
     </div>
   </form>
@@ -190,6 +205,9 @@ const props = defineProps({
 });
   
 const emit = defineEmits(['close', 'submit']);
+
+// --- STATE LOADING ---
+const isSubmitting = ref(false);
 
 const form = reactive({
   namaProject: '',
@@ -237,7 +255,7 @@ const daftarTim = computed(() => {
   if (authStore.user?.teams && Array.isArray(authStore.user.teams)) {
       authStore.user.teams.forEach(userTeam => {
           if (userTeam.peran === 'operator') {
-              allowedTeamIds.add(userTeam.id);
+             allowedTeamIds.add(userTeam.id);
           }
       });
   }
@@ -252,6 +270,12 @@ const daftarTim = computed(() => {
 const isLeaderDropdownOpen = ref(false);
 const leaderSearchQuery = ref('');
 const leaderSearchInput = ref(null);
+
+// -- WATCHER untuk RESET LOADING --
+// Jika form dibuka kembali (initialData berubah), reset state loading
+watch(() => props.initialData, () => {
+  isSubmitting.value = false;
+});
 
 // Computed untuk Search Leader
 const filteredMembers = computed(() => {
@@ -357,13 +381,17 @@ const validate = () => {
 };
 
 const handleSubmit = () => {
+  if (isSubmitting.value) return; // Prevent double submit
+
   if (validate()) {
+    isSubmitting.value = true;
     emit('submit', { 
       namaProject: form.namaProject,
       teamId: form.teamId,
       projectLeaderId: form.projectLeaderId,
       sendWhatsapp: form.sendWhatsapp
     });
+    // Note: isSubmitting will be reset via watcher on props.initialData when modal reopens
   }
 };
 </script>
