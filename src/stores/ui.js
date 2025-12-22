@@ -7,7 +7,7 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const useUIStore = defineStore('ui', () => {
   // 'state' untuk melacak status sidebar
-  const isSidebarOpen = ref(true)
+  const isSidebarOpen = ref(false)
   const unreadCount = ref(0); 
 
   // 'action' untuk mengubah state

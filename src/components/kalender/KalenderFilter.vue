@@ -1,7 +1,7 @@
 <template>
   <!-- STICKY HEADER CONTROL PANEL -->
   <div 
-    class="sticky top-0 z-30 transition-all duration-500 ease-in-out"
+    class="top-0 z-30 transition-all duration-500 ease-in-out"
     
   >
     <div 

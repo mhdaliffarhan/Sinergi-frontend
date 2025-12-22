@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="space-y-6 text-gray-800 dark:text-gray-200 p-1">
+  <form @submit.prevent="handleSubmit" class="space-y-6 text-gray-800 dark:text-gray-200">
     
     <!-- ... (Bagian 1 sampai 6 sama seperti sebelumnya, tidak ada perubahan) ... -->
     <!-- BAGIAN 1: INFORMASI DASAR -->
