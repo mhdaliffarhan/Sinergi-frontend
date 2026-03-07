@@ -9,32 +9,33 @@ import 'vue-toastification/dist/index.css'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
-import './axiosConfig' 
+import './axiosConfig'
 
 const app = createApp(App)
-const pinia = createPinia() 
+const pinia = createPinia()
 app.use(pinia)
 
 // Buat instance store SETELAH pinia di-mount
-const authStore = useAuthStore(pinia); 
+const authStore = useAuthStore(pinia)
+authStore.loadSession()
 
 app.use(Toast, {
-  transition: "Vue-Toastification__bounce",
+  transition: 'Vue-Toastification__bounce',
   maxToasts: 5,
-  newestOnTop: true
+  newestOnTop: true,
 })
 
 // Buat fungsi async untuk setup
 async function initializeApp() {
   try {
-    await authStore.restoreSession();
+    await authStore.restoreSession()
   } catch (error) {
-    console.error("Gagal memulihkan sesi:", error);
+    console.error('Gagal memulihkan sesi:', error)
   }
-  
+
   app.use(router) // Gunakan router SETELAH sesi dipulihkan
   app.mount('#app')
 }
 
 // Panggil fungsi inisialisasi
-initializeApp();
+initializeApp()
