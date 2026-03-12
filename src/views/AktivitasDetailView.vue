@@ -239,6 +239,55 @@
               </div>
             </div>
 
+            <!-- [FITUR BARU] WA REMINDERS -->
+            <div v-if="aktivitas.reminders && aktivitas.reminders.length > 0" class="mb-10 animate-fade-in-up">
+              <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                WA Reminders ({{ aktivitas.reminders.length }})
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div 
+                  v-for="rem in aktivitas.reminders" 
+                  :key="rem.id"
+                  class="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <span 
+                      class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider"
+                      :class="rem.status === 'sent' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'"
+                    >
+                      {{ rem.status }}
+                    </span>
+                    <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                      {{ 
+                        rem.reminderType === 'hari_h' ? 'Hari-H' :
+                        rem.reminderType === 'h_minus_1' ? 'H-1' :
+                        rem.reminderType === 'h_minus_2' ? 'H-2' :
+                        rem.reminderType === 'jam_minus_1' ? '1 Jam Sebelum' :
+                        rem.reminderType === 'jam_minus_2' ? '2 Jam Sebelum' : 
+                        rem.reminderType === 'deadline' ? 'Deadline' :
+                        rem.reminderType === 'deadline_minus_1' ? 'H-1 Deadline' :
+                        rem.reminderType === 'deadline_minus_2' ? 'H-2 Deadline' : 'Manual'
+                      }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-inner"
+                      :class="rem.status === 'sent' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'"
+                    >
+                      {{ rem.reminderType === 'manual' ? '🕙' : '📅' }}
+                    </div>
+                    <div>
+                      <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase leading-none mb-1">Jadwal Kirim:</p>
+                      <p class="text-sm font-black text-gray-800 dark:text-gray-100">
+                        {{ formatReminderDate(rem.scheduledAt) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- MEMBERS SECTION -->
             <div class="mt-8 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl p-6 border border-gray-100 dark:border-gray-700/50">
               <div class="flex items-center justify-between mb-4">
@@ -653,6 +702,18 @@ watch(
     }
   }
 );
+
+const formatReminderDate = (dateStr) => {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return d.toLocaleString('id-ID', { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  }) + ' WITA';
+};
 
 // --- HELPER STATUS COLOR ---
 const getStatusColor = (status) => {

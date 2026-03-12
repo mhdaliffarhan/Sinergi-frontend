@@ -318,6 +318,15 @@
           <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-2">Pintasan:</span>
           <button 
             type="button"
+            @click="addSelf"
+            class="group flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm"
+          >
+            <span class="w-4 h-4 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">🙋</span>
+            Pilih Saya
+          </button>
+
+          <button 
+            type="button"
             @click="addMembersByTeam(form.teamId)"
             class="group flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all shadow-sm"
           >
@@ -472,25 +481,93 @@
     </div>
 
     <!-- NOTIFIKASI WHATSAPP -->
-    <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800/50">
-        <div class="flex items-start gap-3">
-          <div class="flex items-center h-5">
-            <input
-              id="send-whatsapp-akt"
-              v-model="form.sendWhatsapp"
-              type="checkbox"
-              class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            />
+    <div class="space-y-4">
+      <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800/50">
+          <div class="flex items-start gap-3">
+            <div class="flex items-center h-5">
+              <input
+                id="send-whatsapp-akt"
+                v-model="form.sendWhatsapp"
+                type="checkbox"
+                class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+            </div>
+            <div class="ml-2 text-sm">
+              <label for="send-whatsapp-akt" class="font-medium text-gray-900 dark:text-gray-100 select-none cursor-pointer">
+                Kirim Notifikasi Instan
+              </label>
+              <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                Kirim pesan WhatsApp sekarang juga ke semua pegawai yang terlibat.
+              </p>
+            </div>
           </div>
-          <div class="ml-2 text-sm">
-            <label for="send-whatsapp-akt" class="font-medium text-gray-900 dark:text-gray-100 select-none cursor-pointer">
-              Kirim Notifikasi WhatsApp
-            </label>
-            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">
-              Kirim pesan WhatsApp ke semua pegawai yang terlibat dalam aktivitas ini.
-            </p>
+      </div>
+
+      <!-- WA REMINDER SCHEDULING (FITUR BARU) -->
+      <div class="p-5 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-800/50">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+              📅 Penjadwalan WA Reminder
+            </h3>
+            <p class="text-[10px] text-blue-600/70 dark:text-blue-400/50 mt-0.5">Atur kapan pengingat harus dikirim otomatis.</p>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" @click="addReminder('hari_h')" class="px-3 py-1.5 text-[10px] font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm">+ Hari-H</button>
+            <button type="button" @click="addReminder('h_minus_1')" class="px-3 py-1.5 text-[10px] font-bold bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all shadow-sm">+ H-1</button>
+            <button type="button" @click="addReminder('h_minus_2')" class="px-3 py-1.5 text-[10px] font-bold bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all shadow-sm">+ H-2</button>
+            <button type="button" @click="addReminder('jam_minus_1')" class="px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all shadow-sm">+ 1 Jam</button>
+            <button type="button" @click="addReminder('jam_minus_2')" class="px-3 py-1.5 text-[10px] font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">+ 2 Jam</button>
+            
+            <!-- Deadline Presets (Dinamis) -->
+            <template v-if="form.useDateRange">
+              <button type="button" @click="addReminder('deadline')" class="px-3 py-1.5 text-[10px] font-bold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-sm">+ Deadline</button>
+              <button type="button" @click="addReminder('deadline_minus_1')" class="px-3 py-1.5 text-[10px] font-bold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all shadow-sm">+ H-1 Deadline</button>
+              <button type="button" @click="addReminder('deadline_minus_2')" class="px-3 py-1.5 text-[10px] font-bold bg-red-400 text-white rounded-lg hover:bg-red-500 transition-all shadow-sm">+ H-2 Deadline</button>
+            </template>
+
+            <button type="button" @click="addReminder('manual')" class="px-3 py-1.5 text-[10px] font-bold bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all shadow-sm">+ Manual</button>
           </div>
         </div>
+
+        <transition-group name="list" tag="div" class="space-y-3">
+          <div v-for="(rem, index) in reminders" :key="rem._tempId" class="bg-white dark:bg-gray-800 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span v-if="rem.reminderType === 'hari_h'" class="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-bold rounded-md uppercase">Hari-H (07.00)</span>
+                <span v-else-if="rem.reminderType === 'h_minus_1'" class="px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold rounded-md uppercase">H-1 (07.00)</span>
+                <span v-else-if="rem.reminderType === 'h_minus_2'" class="px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold rounded-md uppercase">H-2 (07.00)</span>
+                <span v-else-if="rem.reminderType === 'jam_minus_1'" class="px-2 py-0.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-[10px] font-bold rounded-md uppercase">1 Jam Sebelum</span>
+                <span v-else-if="rem.reminderType === 'jam_minus_2'" class="px-2 py-0.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-[10px] font-bold rounded-md uppercase">2 Jam Sebelum</span>
+                <span v-else-if="rem.reminderType === 'deadline'" class="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold rounded-md uppercase">Deadline (07.00)</span>
+                <span v-else-if="rem.reminderType === 'deadline_minus_1'" class="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold rounded-md uppercase">H-1 Deadline (07.00)</span>
+                <span v-else-if="rem.reminderType === 'deadline_minus_2'" class="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold rounded-md uppercase">H-2 Deadline (07.00)</span>
+                <span v-else class="px-2 py-0.5 bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 text-[10px] font-bold rounded-md uppercase">Manual</span>
+              </div>
+              <button @click="removeReminder(index)" type="button" class="text-gray-400 hover:text-red-500 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            <div v-if="rem.reminderType === 'manual'" class="animate-fade-in">
+              <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tanggal & Jam Pengiriman</label>
+              <input 
+                type="datetime-local" 
+                v-model="rem.scheduledAt"
+                class="block w-full px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
+              />
+            </div>
+            <div v-else class="text-[11px] text-gray-500 italic">
+               Otomatis dikirim jam 07.00 WITA.
+            </div>
+          </div>
+        </transition-group>
+        
+        <div v-if="reminders.length === 0" class="text-center py-6 text-blue-400/60 flex flex-col items-center gap-2">
+           <span class="text-2xl">💤</span>
+           <span class="text-xs font-medium">Belu ada pengingat otomatis dijadwalkan.</span>
+        </div>
+      </div>
     </div>
 
     <!-- Tombol Simpan -->
@@ -552,6 +629,7 @@ const allActivities = ref([]);
 const isParentDropdownOpen = ref(false);
 const parentSearchQuery = ref('');
 const parentSearchInput = ref(null);
+const reminders = ref([]); // <--- BARU
 
 const form = reactive({
   namaAktivitas: '',
@@ -662,6 +740,27 @@ const selectAllText = computed(() => {
   return allFilteredSelected.value ? 'Batal Pilih Semua' : 'Pilih Semua (Hasil Pencarian)';
 });
 
+// --- LOGIKA REMINDERS ---
+const addReminder = (type) => {
+  if (reminders.value.some(r => r.reminderType === type && type !== 'manual')) {
+    toast.warning("Tipe pengingat ini sudah ada.");
+    return;
+  }
+
+  const newReminder = {
+    reminderType: type,
+    scheduledAt: null,
+    isActive: true,
+    _tempId: Date.now()
+  };
+
+  reminders.value.push(newReminder);
+};
+
+const removeReminder = (index) => {
+  reminders.value.splice(index, 1);
+};
+
 // --- METHODS ---
 
 // [FITUR BARU] Fetch aktivitas untuk opsi parent
@@ -744,6 +843,23 @@ const addMembersByTeam = (targetTeamId) => {
   toast.success(`Menambahkan ${newOnes.length} anggota.`);
 };
 
+const addSelf = () => {
+  const currentUserId = authStore.user?.id;
+  if (!currentUserId) return;
+
+  const me = props.pegawaiList.find(p => p.id === currentUserId);
+  if (me) {
+    if (!isSelected(me.id)) {
+      selectedMembers.value.push(me);
+      toast.success("Anda telah ditambahkan ke daftar peserta.");
+    } else {
+      toast.info("Anda sudah ada di daftar peserta.");
+    }
+  } else {
+    toast.error("Gagal menemukan profil Anda di daftar pegawai.");
+  }
+};
+
 const tambahDokumen = () => {
   if (namaDokumenBaru.value.trim()) {
     daftarDokumenWajib.value.push(namaDokumenBaru.value.trim());
@@ -801,8 +917,12 @@ const handleSubmit = async () => {
       anggota_aktivitas_ids: selectedMembers.value.map(m => m.id),
       sendWhatsapp: form.sendWhatsapp,
       idTimTerkait: form.idTimTerkait, 
-
-      melibatkanKepala: false 
+      melibatkanKepala: includeHead.value,
+      reminders: reminders.value.map(r => ({
+        reminder_type: r.reminderType,
+        scheduled_at: r.scheduledAt,
+        is_active: r.isActive
+      }))
     };
 
     // Emit event and let parent handle API call
@@ -903,9 +1023,21 @@ watch(() => props.initialData, (newData) => {
     daftarDokumenWajib.value = newData.daftarDokumenWajib ? newData.daftarDokumenWajib.map(d => d.namaDokumen) : [];
     selectedMembers.value = newData.users ? [...newData.users] : [];
 
+    if (newData.reminders) {
+      reminders.value = newData.reminders.map(r => ({
+        reminderType: r.reminderType || r.reminder_type,
+        scheduledAt: r.scheduledAt || r.scheduled_at,
+        isActive: r.isActive !== undefined ? r.isActive : r.is_active,
+        _tempId: r.id
+      }));
+    } else {
+      reminders.value = [];
+    }
+
     form.sendWhatsapp = false;
   } else {
     form.sendWhatsapp = false;
+    reminders.value = [];
   }
 }, { immediate: true });
 
