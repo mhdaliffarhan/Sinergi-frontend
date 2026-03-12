@@ -9,13 +9,14 @@
 
     <div class="relative z-20 flex flex-col items-center justify-center h-full text-center text-white px-4">
 
-      <img src="/logo.png" alt="Logo SINERGI" class="h-50 w-auto mb-4">
-
+      <img src="/logo.png" alt="Logo SATSET" class="h-50 w-auto mb-4">
       <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight">
-        Selamat Datang di <span class="text-blue-400">SI</span><span class="text-green-400">NER</span><span class="text-orange-400">GI</span>
+        Selamat Datang di <span class="text-blue-400">SAT</span><span class="text-green-400">S</span><span class="text-orange-400">ET</span>
       </h1>
-
-      <p class="mt-4 max-w-2xl text-lg text-gray-200">
+      <p class="mt-4 max-w-2xl text-lg text-gray-200 uppercase font-black tracking-widest">
+        Kolaborasi Cepat, Dokumentasi Tertata
+      </p>
+      <p class="mt-2 max-w-2xl text-sm text-gray-300">
         Sebuah platform terintegrasi untuk meningkatkan produktivitas dan kolaborasi seluruh pegawai BPS Provinsi Nusa Tenggara Barat.
       </p>
 

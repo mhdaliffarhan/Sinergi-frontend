@@ -6,7 +6,7 @@
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>
         <router-link to="/dashboard" class="flex items-center">
-          <img src="/logo-tulisan.png" alt="Logo SINERGI" class="pt-2 w-32 h-full object-contain">
+          <img src="/logo-tulisan.png" alt="Logo SATSET" class="pt-2 w-32 h-full object-contain">
         </router-link>
       </div>
       <div class="flex items-center gap-2">

@@ -134,7 +134,7 @@ const currentStep = ref(0);
 const steps = [
   {
     icon: '👋',
-    title: 'Selamat Datang di SINERGI',
+    title: 'Selamat Datang di SATSET',
     description: 'Sistem Informasi Manajemen Aktivitas Harian dan Pengumpulan Dokumen Pegawai. Aplikasi ini dirancang untuk mempermudah pencatatan aktivitas harian, pengelolaan tim, pemantauan project tim, dan pengarsipan dokumen.'
   },
   {

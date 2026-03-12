@@ -165,7 +165,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuthData()
 
     // Alamat Logout SSO
-    const ssoLogoutUrl = 'https://sso.statsntb.id/auth/sso-logout'
+    const ssoLogoutUrl = 'https://auth.pintu.statsntb.id/auth/sso-logout'
     const localLoginUrl = window.location.origin + '/login'
 
     // Redirect ke SSO Logout agar sesi di pusat juga mati

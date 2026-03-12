@@ -471,7 +471,7 @@ const processBackup = async () => {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     
-    let filename = `Backup_Sinergi_${filterYear.value}-${filterMonth.value}.zip`;
+    let filename = `Backup_SATSET_${filterYear.value}-${filterMonth.value}.zip`;
     const contentDisposition = response.headers['content-disposition'];
     if (contentDisposition) {
       const match = contentDisposition.match(/filename="?(.+)"?/);

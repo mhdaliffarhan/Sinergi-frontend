@@ -51,7 +51,7 @@
           Akses sistem
           <span
             class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-green-600 to-yellow-600"
-            >SINERGI</span
+            >SATSET</span
           >
           BPS NTB
         </p>
@@ -220,7 +220,7 @@
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-green-500/20 text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-green-500 to-yellow-500 hover:from-blue-700 hover:via-green-600 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+          class="w-full flex justify-center items-center py-3.5 px-4 border-none rounded-xl shadow-lg shadow-blue-500/20 text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-green-500 to-yellow-500 hover:from-blue-700 hover:via-green-600 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.98] overflow-hidden"
         >
           <span v-if="isLoading" class="flex items-center gap-2">
             <svg
@@ -247,20 +247,30 @@
           </span>
           <span v-else>Masuk Sekarang</span>
         </button>
+
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <span class="w-full border-t border-gray-300 dark:border-gray-700"></span>
+          </div>
+          <div class="relative flex justify-center text-xs uppercase">
+            <span class="bg-white dark:bg-gray-900 px-2 text-gray-500">Atau</span>
+          </div>
+        </div>
+
         <button
           @click="authStore.ssoLogin"
           type="button"
-          class="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          class="w-full inline-flex items-center justify-center gap-3 px-6 py-4 bg-white text-slate-800 font-bold rounded-2xl shadow-md border border-slate-200 transition-all hover:scale-[1.01] active:scale-[0.98] group"
         >
-          <img src="/logo.png" class="h-5 w-5 mr-2" />
-          Login dengan SSO NTB
+          <img src="/logo-pintu.png" class="h-6 w-6 group-hover:rotate-12 transition-transform" alt="PINTU">
+          <span class="border-l border-slate-200 pl-3">Masuk dengan PINTU</span>
         </button>
       </form>
 
       <!-- Footer Copyright -->
       <div class="mt-8 text-center">
         <p class="text-xs text-gray-400 dark:text-gray-500">
-          &copy; {{ new Date().getFullYear() }} Sinergi BPS NTB. All rights reserved.
+          &copy; {{ new Date().getFullYear() }} SATSET BPS NTB. All rights reserved.
         </p>
       </div>
     </div>

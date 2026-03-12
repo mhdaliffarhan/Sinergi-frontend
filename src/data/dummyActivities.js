@@ -25,7 +25,7 @@ export const dummyActivities = [
   },
   {
     id: 3,
-    namaAktivitas: "Pelatihan Aplikasi SINERGI",
+    namaAktivitas: "Pelatihan Aplikasi SATSET",
     timPenyelenggara: "Divisi IT",
     dibuatPada: "2025-07-05",
     daftarDokumenWajib: [
