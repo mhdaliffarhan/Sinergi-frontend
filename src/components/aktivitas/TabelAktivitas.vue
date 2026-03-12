@@ -15,6 +15,9 @@
           <th scope="col" class="px-6 py-3">
             Jadwal Pelaksanaan
           </th>
+          <th scope="col" class="px-6 py-3 text-center">
+            Status
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -55,6 +58,14 @@
                 <span>{{ formatJadwal(item).waktu }}</span>
               </span>
             </div>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span 
+              class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+              :class="getStatusClasses(item.status)"
+            >
+              {{ item.status || 'Belum Selesai' }}
+            </span>
           </td>
         </tr>
       </tbody>
@@ -104,5 +115,14 @@ const formatJadwal = (item) => {
   }
 
   return { tanggal: tanggalTampil, waktu: waktuTampil };
+};
+
+const getStatusClasses = (status) => {
+  switch (status) {
+    case 'Selesai': return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+    case 'Menunggu Validasi': return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
+    case 'Dalam Proses': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+    default: return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+  }
 };
 </script>

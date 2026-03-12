@@ -31,6 +31,8 @@ const bgGlowClass = computed(() => {
     green: 'bg-green-200 dark:bg-green-500',
     orange: 'bg-orange-200 dark:bg-orange-500',
     purple: 'bg-purple-200 dark:bg-purple-500',
+    yellow: 'bg-yellow-200 dark:bg-yellow-500',
+    red: 'bg-red-200 dark:bg-red-500',
   };
   return map[props.color] || map.blue;
 });
@@ -41,6 +43,8 @@ const iconClass = computed(() => {
     green: 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 ring-green-100 dark:ring-green-500/30',
     orange: 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 ring-orange-100 dark:ring-orange-500/30',
     purple: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 ring-purple-100 dark:ring-purple-500/30',
+    yellow: 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 ring-yellow-100 dark:ring-yellow-500/30',
+    red: 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 ring-red-100 dark:ring-red-500/30',
   };
   return map[props.color] || map.blue;
 });

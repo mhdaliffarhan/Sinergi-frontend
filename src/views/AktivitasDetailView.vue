@@ -78,6 +78,19 @@
                   <div class="prose dark:prose-invert max-w-4xl text-gray-600 dark:text-gray-300 text-base leading-relaxed">
                     {{ aktivitas.deskripsi || 'Tidak ada deskripsi tambahan.' }}
                   </div>
+
+                  <!-- --- VALIDATION NOTES (IF DONE) --- -->
+                  <div v-if="aktivitas.status === 'Selesai' && aktivitas.validator" class="mt-4 p-4 bg-green-50/50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/50 rounded-xl">
+                    <div class="flex items-center gap-2 mb-2">
+                       <span class="text-lg">🛡️</span>
+                       <span class="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">Divalidasi Oleh:</span>
+                       <span class="text-sm font-bold text-gray-800 dark:text-gray-100">{{ aktivitas.validator.namaLengkap }}</span>
+                       <span class="text-[10px] text-gray-400">— {{ formatFileDate(aktivitas.validatedAt) }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 italic" v-if="aktivitas.catatanValidator">
+                       "{{ aktivitas.catatanValidator }}"
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -201,6 +214,73 @@
                   <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Leader: {{ aktivitas.project?.projectLeader?.namaLengkap || '-' }}
                   </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- --- NEW: ACTION PANEL (STATUS & VALIDATION) --- -->
+            <div class="mb-10 animate-fade-in-up">
+              <!-- CASE 1: LEADERS (VALIDATION WORKFLOW) -->
+              <div v-if="isAuthorized && aktivitas.status === 'Menunggu Validasi'" class="p-6 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-800/50 rounded-2xl shadow-sm">
+                <h3 class="text-lg font-black text-orange-800 dark:text-orange-300 mb-4 flex items-center gap-2">
+                  <span class="animate-bounce">🛡️</span> Validasi Aktivitas Diperlukan
+                </h3>
+                <p class="text-sm text-orange-700/80 dark:text-orange-400/80 mb-6">
+                  Aktivitas ini telah ditandai selesai oleh anggota tim. Periksa kelengkapan dokumen pendukung sebelum memberikan persetujuan akhir.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                  <div class="flex-1">
+                    <textarea 
+                      v-model="validationNote" 
+                      placeholder="Tambahkan catatan untuk anggota (opsional)..."
+                      class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-700 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                      rows="2"
+                    ></textarea>
+                  </div>
+                  <div class="flex gap-2 shrink-0 h-fit self-end">
+                    <button 
+                      @click="handleValidation(false)"
+                      class="px-6 py-3 bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 font-bold rounded-xl border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/30 transition shadow-sm"
+                    >
+                      Tolak & Revisi
+                    </button>
+                    <button 
+                      @click="handleValidation(true)"
+                      class="px-8 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-bold rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transform hover:scale-105 transition"
+                    >
+                      Setujui (Selesai)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CASE 2: MEMBERS (STATUS TRANSITION) -->
+              <div v-else-if="isAnggotaTim && ['Belum Selesai', 'Dalam Proses'].includes(aktivitas.status)" class="p-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-2xl">
+                    {{ aktivitas.status === 'Belum Selesai' ? '🚀' : '⚙️' }}
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-gray-900 dark:text-white">Update Status Pekerjaan</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Beritahu sistem progres pekerjaan Anda saat ini.</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                   <button 
+                    v-if="aktivitas.status === 'Belum Selesai'"
+                    @click="updateAktivitasStatus('Dalam Proses')"
+                    class="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/20"
+                  >
+                    Mulai Kerjakan
+                  </button>
+                  <button 
+                    @click="updateAktivitasStatus('Menunggu Validasi')"
+                    class="flex-1 md:flex-none px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 text-white font-bold rounded-xl transition shadow-lg shadow-orange-500/20"
+                  >
+                    Ajukan Validasi Selesai
+                  </button>
                 </div>
               </div>
             </div>
@@ -586,6 +666,7 @@ const teamList = ref([]);
 const projectList = ref([]);
 const pegawaiList = ref([]);
 const teamMembers = ref([]); 
+const validationNote = ref('');
 
 // --- AUTHORIZATION ---
 const isAuthorized = computed(() => {
@@ -719,6 +800,7 @@ const formatReminderDate = (dateStr) => {
 const getStatusColor = (status) => {
   switch (status) {
     case 'Selesai': return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+    case 'Menunggu Validasi': return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
     case 'Dalam Proses': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
     default: return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'; // Belum Selesai
   }
@@ -727,6 +809,7 @@ const getStatusColor = (status) => {
 const getStatusDotColor = (status) => {
   switch (status) {
     case 'Selesai': return 'bg-green-500';
+    case 'Menunggu Validasi': return 'bg-orange-500';
     case 'Dalam Proses': return 'bg-blue-500';
     default: return 'bg-gray-400';
   }
@@ -797,6 +880,37 @@ const handleUpdateActivity = async (formData) => {
     closeEditModal();
     fetchDetailAktivitas();
   } catch(e) { toast.error("Gagal update."); }
+};
+
+const updateAktivitasStatus = async (newStatus) => {
+  try {
+    const confirmation = newStatus === 'Menunggu Validasi' 
+      ? "Pastikan semua dokumen wajib sudah di-upload. Ajukan validasi?" 
+      : `Pindahkan status ke ${newStatus}?`;
+    
+    if (confirm(confirmation)) {
+      const { data } = await axios.patch(`${baseURL}/api/aktivitas/${route.params.id}/status`, { status: newStatus });
+      aktivitas.value = data;
+      toast.success(`Status diperbarui ke ${newStatus}`);
+    }
+  } catch (error) {
+    const msg = error.response?.data?.detail || "Gagal memperbarui status.";
+    toast.error(msg);
+  }
+};
+
+const handleValidation = async (approved) => {
+  try {
+    const { data } = await axios.post(`${baseURL}/api/aktivitas/${route.params.id}/validate`, {
+      approved,
+      catatan: validationNote.value
+    });
+    aktivitas.value = data;
+    validationNote.value = '';
+    toast.success(approved ? "Aktivitas telah diselesaikan & divalidasi!" : "Aktivitas dikembalikan untuk revisi.");
+  } catch (error) {
+    toast.error("Gagal melakukan validasi.");
+  }
 };
 
 const confirmDeleteActivity = () => { if(confirm("Hapus aktivitas?")) deleteActivity(); };

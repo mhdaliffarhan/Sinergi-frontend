@@ -35,13 +35,23 @@
             </h1>
           </div>
 
-          <button
-            @click="openModal"
-            class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 origin-left ml-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            <span class="text-xl font-bold">+</span>
-            <span class="font-semibold">Buat Aktivitas</span>
-          </button>
+          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <button
+              @click="openModal"
+              class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 origin-left ml-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              <span class="text-xl font-bold">+</span>
+              <span class="font-semibold">Buat Aktivitas</span>
+            </button>
+
+            <button
+              @click="openWrapped"
+              class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-purple-500/30 transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <span class="text-lg">🎉</span>
+              <span class="font-semibold">Lihat Rekap</span>
+            </button>
+          </div>
         </div>
 
         <!-- KANAN: Info & Filter -->
@@ -156,6 +166,12 @@
                 icon="📊"
                 color="green"
               />
+              <DashboardStats
+                title="Menunggu Validasi"
+                :value="stats.butuhValidasi"
+                icon="⏳"
+                color="orange"
+              />
             </template>
 
             <template v-else-if="isKetuaTim">
@@ -176,6 +192,12 @@
                 :value="stats.totalAktivitasBulanIni"
                 icon="🗂️"
                 color="green"
+              />
+              <DashboardStats
+                title="Wajib Validasi"
+                :value="stats.butuhValidasi"
+                icon="🚨"
+                color="red"
               />
             </template>
 
@@ -199,6 +221,34 @@
                 color="green"
               />
             </template>
+          </div>
+
+          <!-- 1b. STATUS STATS -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <DashboardStats 
+              title="Belum Selesai" 
+              :value="stats.statusCounts?.['Belum Selesai'] || 0" 
+              icon="🌑" 
+              color="blue" 
+            />
+            <DashboardStats 
+              title="Dalam Proses" 
+              :value="stats.statusCounts?.['Dalam Proses'] || 0" 
+              icon="🔄" 
+              color="yellow" 
+            />
+            <DashboardStats 
+              title="Selesai" 
+              :value="stats.statusCounts?.['Selesai'] || 0" 
+              icon="✅" 
+              color="green" 
+            />
+             <DashboardStats 
+              title="Dibatalkan" 
+              :value="stats.statusCounts?.['Dibatalkan'] || 0" 
+              icon="❌" 
+              color="red" 
+            />
           </div>
 
           <!-- 2. CHARTS & LISTS AREA -->
@@ -226,9 +276,14 @@
               </div>
             </div>
 
-            <!-- Right Column (Agenda) -->
-            <div class="lg:col-span-1 h-[500px]">
-              <DashboardAgenda :events="agendaList" />
+            <!-- Right Column (Agenda & Leaderboard) -->
+            <div class="lg:col-span-1 space-y-8">
+              <div class="h-[400px]">
+                <DashboardAgenda :events="agendaList" />
+              </div>
+              <div class="h-[400px]">
+                <DashboardLeaderboard :items="leaderboardData" />
+              </div>
             </div>
           </div>
 
@@ -254,6 +309,13 @@
 
       <!-- MODAL TUTORIAL (BARU) -->
       <TutorialModal :is-open="showTutorial" @close="closeTutorial" />
+
+      <!-- MODAL WRAPPED (NEW) -->
+      <DashboardWrappedModal 
+        :is-open="isWrappedOpen" 
+        :data="wrappedData" 
+        @close="isWrappedOpen = false" 
+      />
     </div>
   </div>
 </template>
@@ -271,6 +333,8 @@ import DashboardAgenda from '@/components/dashboard/DashboardAgenda.vue'
 import DashboardChart from '@/components/dashboard/DashboardChart.vue'
 import DashboardTimeline from '@/components/dashboard/DashboardTimeline.vue'
 import DashboardTeamTimeline from '@/components/dashboard/DashboardTeamTimeline.vue'
+import DashboardLeaderboard from '@/components/dashboard/DashboardLeaderboard.vue'
+import DashboardWrappedModal from '@/components/dashboard/DashboardWrappedModal.vue'
 
 import ModalWrapper from '@/components/ModalWrapper.vue'
 import FormAktivitas from '@/components/aktivitas/FormAktivitas.vue'
@@ -288,13 +352,18 @@ const stats = ref({
   totalAnggotaTim: 0,
   totalProject: 0,
   totalAktivitasSaya: 0,
+  butuhValidasi: 0,
+  statusCounts: {}
 })
 const todoList = ref([])
 const agendaList = ref([])
 const chartData = ref([])
 const allTeams = ref([])
+const leaderboardData = ref([])
+const wrappedData = ref(null)
 
 const isModalOpen = ref(false)
+const isWrappedOpen = ref(false)
 const showTutorial = ref(false) // State Modal Tutorial
 
 const teamList = ref([])
@@ -379,11 +448,25 @@ const fetchDashboardData = async () => {
       params: agendaParams,
     })
     agendaList.value = resAgenda.data.items
+
+    // Fetch Leaderboard
+    const resLeaderboard = await axios.get(`${baseURL}/api/dashboard/leaderboard`)
+    leaderboardData.value = resLeaderboard.data
   } catch (error) {
     console.error('Dashboard error:', error)
     toast.error('Gagal memuat data dashboard.')
   } finally {
     isLoading.value = false
+  }
+}
+
+const openWrapped = async () => {
+  try {
+    const res = await axios.get(`${baseURL}/api/dashboard/wrapped`)
+    wrappedData.value = res.data
+    isWrappedOpen.value = true
+  } catch (e) {
+    toast.error('Gagal memuat rekap Anda.')
   }
 }
 

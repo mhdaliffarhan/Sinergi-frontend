@@ -8,6 +8,17 @@
         :style="{ backgroundColor: aktivitas.team?.warna || '#3b82f6' }"
       ></div>
 
+      <!-- STATUS BADGE -->
+      <div class="absolute top-2 right-2">
+        <span 
+          v-if="aktivitas.status"
+          class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border shadow-sm"
+          :class="getStatusClasses(aktivitas.status)"
+        >
+          {{ aktivitas.status }}
+        </span>
+      </div>
+
       <div class="flex items-start gap-4 mb-3">
         <div 
           class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm transition-colors duration-300"
@@ -102,6 +113,19 @@ const hexToRgba = (hex, alpha) => {
     b = "0x" + hex[5] + hex[6];
   }
   return "rgba(" + +r + "," + +g + "," + +b + "," + alpha + ")";
+};
+
+const getStatusClasses = (status) => {
+  switch (status) {
+    case 'Selesai': 
+      return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+    case 'Menunggu Validasi': 
+      return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
+    case 'Dalam Proses': 
+      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+    default: 
+      return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+  }
 };
 
 // --- COMPUTED LOGIC ---

@@ -16,14 +16,20 @@
       </div>
 
       <div 
-        v-else
         v-for="item in items" 
-        :key="item.id"
+        :key="item.id + item.jenisTugas"
         class="group flex items-start gap-4 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all bg-white dark:bg-gray-800"
+        :class="{ 'border-red-500/50 dark:border-red-500/30 bg-red-50/30 dark:bg-red-900/10': isOverdue(item.tanggalMulai) }"
       >
         <div class="flex-shrink-0 mt-1">
           <div v-if="item.jenisTugas === 'upload'" class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center text-lg animate-pulse">
             📤
+          </div>
+          <div v-else-if="item.jenisTugas === 'aktivitas_pending'" class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center text-lg">
+            🔥
+          </div>
+          <div v-else-if="item.jenisTugas === 'validasi_aktivitas'" class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/20 text-green-500 flex items-center justify-center text-lg">
+            🏁
           </div>
           <div v-else class="w-8 h-8 rounded-full bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 flex items-center justify-center text-lg">
             🛡️
@@ -32,23 +38,26 @@
 
         <div class="flex-1 min-w-0">
           <div class="flex justify-between items-start">
-            <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-1">{{ item.namaDokumen }}</h4>
+            <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-1 flex items-center gap-1">
+              {{ item.namaDokumen }}
+              <span v-if="isOverdue(item.tanggalMulai)" class="text-[10px] bg-red-500 text-white px-1 rounded animate-pulse">TERLEWAT</span>
+            </h4>
             <span class="text-[10px] text-gray-400 whitespace-nowrap">{{ formatDate(item.tanggalMulai) }}</span>
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
             di: <span class="font-medium text-blue-600 dark:text-blue-400">{{ item.namaAktivitas }}</span>
           </p>
-          <p class="text-[10px] text-gray-400 mt-0.5">
-            {{ item.jenisTugas === 'upload' ? 'Belum diunggah' : 'Menunggu validasi Anda' }}
+          <p class="text-[10px] text-gray-400 mt-0.5" :class="{ 'text-red-500 font-bold': isOverdue(item.tanggalMulai) }">
+            {{ getTaskDescription(item) }}
           </p>
         </div>
 
         <button 
           @click="goToDetail(item.aktivitasId)"
-          class="self-center px-3 py-1.5 text-xs font-bold text-white rounded-lg shadow-sm transition-transform active:scale-95"
-          :class="item.jenisTugas === 'upload' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-yellow-500 hover:bg-yellow-600'"
+          class="self-center px-3 py-1.5 text-xs font-bold text-white rounded-lg shadow-sm transition-transform active:scale-95 whitespace-nowrap"
+          :class="getButtonClass(item)"
         >
-          {{ item.jenisTugas === 'upload' ? 'Upload' : 'Periksa' }}
+          {{ getButtonText(item) }}
         </button>
       </div>
     </div>
@@ -72,6 +81,39 @@ const titleIcon = computed(() => props.role === 'leader' ? '✅' : '🔥');
 const goToDetail = (id) => {
   router.push(`/aktivitas/detail/${id}`);
 };
+
+const isOverdue = (dateStr) => {
+  if (!dateStr) return false;
+  const targetDate = new Date(dateStr);
+  const now = new Date();
+  // Set to midnight for date-only comparison
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const deadline = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  
+  return deadline < today;
+}
+
+const getTaskDescription = (item) => {
+  if (item.jenisTugas === 'upload') return 'Dokumen belum diunggah';
+  if (item.jenisTugas === 'validasi') return 'Review dokumen anggota';
+  if (item.jenisTugas === 'validasi_aktivitas') return 'Persetujuan akhir aktivitas';
+  if (item.jenisTugas === 'aktivitas_pending') return 'Aktivitas belum diselesaikan';
+  return 'Tugas tertunda';
+}
+
+const getButtonClass = (item) => {
+  if (item.jenisTugas === 'upload') return 'bg-blue-600 hover:bg-blue-700';
+  if (item.jenisTugas === 'aktivitas_pending') return 'bg-orange-500 hover:bg-orange-600';
+  if (item.jenisTugas === 'validasi_aktivitas') return 'bg-green-600 hover:bg-green-700';
+  return 'bg-yellow-500 hover:bg-yellow-600';
+}
+
+const getButtonText = (item) => {
+  if (item.jenisTugas === 'upload') return 'Upload';
+  if (item.jenisTugas === 'aktivitas_pending') return 'Kerjakan';
+  if (item.jenisTugas === 'validasi_aktivitas') return 'Validasi';
+  return 'Periksa';
+}
 
 const formatDate = (dateStr) => {
   if(!dateStr) return '-';
